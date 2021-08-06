@@ -2,9 +2,9 @@
 A CLI helper for TimeSheet
 
 ## Todo
-- Enter amount of hours
 - List of hours already logged for current day
-- Delete log for an item
+    - Currently does for all days, need to restrict for current day only
+- Add more/Update/Delete entries
 - Undo/Go to previous field at any time
 - Commands from CLI
     - View todays logs
