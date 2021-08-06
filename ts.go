@@ -43,11 +43,11 @@ func (c *Controller) Init(g *gocui.Gui) {
 }
 
 func (c *Controller) NewEntry(g *gocui.Gui, v *gocui.View) error {
+	c.gui.DeleteKeybinding("", 'a', gocui.ModNone)
 	c.itemView.Destroy()
 	c.hoursView.Destroy()
 	c.messageView.Destroy()
 	c.InitForm()
-	c.gui.DeleteKeybinding("", 'a', gocui.ModNone)
 	return nil
 }
 
