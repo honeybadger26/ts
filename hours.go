@@ -19,6 +19,10 @@ func (hv *HoursView) Init(c *Controller) error {
 	return nil
 }
 
+func (hv *HoursView) Destroy() {
+	hv.controller.gui.DeleteView("hours")
+}
+
 func (hv *HoursView) handleEnter() {
 	g := hv.controller.gui
 	maxX, _ := g.Size()

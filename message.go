@@ -15,6 +15,10 @@ func (mv *MessageView) Init(c *Controller) error {
 	return nil
 }
 
+func (mv *MessageView) Destroy() {
+	mv.controller.gui.DeleteView("message")
+}
+
 func (mv *MessageView) ShowSubmittedMessage() {
 	item := mv.controller.itemView.Item
 	hours := mv.controller.hoursView.Hours

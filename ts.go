@@ -21,19 +21,34 @@ type Controller struct {
 	entries     *Entries
 }
 
-func (c *Controller) Init(g *gocui.Gui) {
-	c.gui = g
-	c.logger = &Logger{}
+func (c *Controller) InitForm() {
 	c.itemView = &ItemView{}
 	c.hoursView = &HoursView{}
 	c.messageView = &MessageView{}
-	c.entries = &Entries{}
 
-	c.logger.Init(c)
 	c.itemView.Init(c)
 	c.hoursView.Init(c)
 	c.messageView.Init(c)
+}
+
+func (c *Controller) Init(g *gocui.Gui) {
+	c.gui = g
+	c.logger = &Logger{}
+	c.entries = &Entries{}
+
+	c.logger.Init(c)
 	c.entries.Init(c)
+
+	c.InitForm()
+}
+
+func (c *Controller) NewEntry(g *gocui.Gui, v *gocui.View) error {
+	c.itemView.Destroy()
+	c.hoursView.Destroy()
+	c.messageView.Destroy()
+	c.InitForm()
+	c.gui.DeleteKeybinding("", 'a', gocui.ModNone)
+	return nil
 }
 
 func (c *Controller) SubmitLog() {
@@ -48,6 +63,10 @@ func (c *Controller) SubmitLog() {
 	defer f.Close()
 
 	if _, err := f.WriteString(line); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := c.gui.SetKeybinding("", 'a', gocui.ModNone, c.NewEntry); err != nil {
 		log.Panicln(err)
 	}
 }

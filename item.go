@@ -10,7 +10,6 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-// TODO: Rename to ItemView
 type ItemView struct {
 	controller *Controller
 
@@ -28,6 +27,7 @@ type ItemView struct {
 	Item string
 }
 
+// TODO: fv -> iv
 func (fv *ItemView) Init(c *Controller) error {
 	fv.controller = c
 	fv.selectedItem = -1
@@ -41,6 +41,10 @@ func (fv *ItemView) Init(c *Controller) error {
 	}
 
 	return nil
+}
+
+func (fv *ItemView) Destroy() {
+	fv.controller.gui.DeleteView("item")
 }
 
 func (fv *ItemView) importItems() error {
