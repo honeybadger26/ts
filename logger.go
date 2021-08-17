@@ -37,8 +37,7 @@ func (l *Logger) Log(text string) {
 			return err
 		}
 
-		// l.view.Clear()
-		fmt.Fprintf(v, text)
+		fmt.Fprintln(v, text)
 		return nil
 	})
 }

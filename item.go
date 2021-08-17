@@ -32,13 +32,14 @@ func (fv *ItemView) Init(c *Controller) error {
 	fv.controller = c
 	fv.selectedItem = -1
 
-	if err := fv.importItems(); err != nil {
-		return err
-	}
+	fv.importItems()
 
 	if err := fv.setupView(); err != nil {
 		return err
 	}
+
+	fv.searchItems("")
+	fv.updateView()
 
 	return nil
 }
@@ -47,11 +48,15 @@ func (fv *ItemView) Destroy() {
 	fv.controller.gui.DeleteView("item")
 }
 
-func (fv *ItemView) importItems() error {
+func (fv *ItemView) importItems() {
+	fv.items = []string{}
 	file, err := os.Open("data/items")
+
 	if err != nil {
-		return err
+		fv.controller.logger.Log("Could not open items file")
+		return
 	}
+
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -60,10 +65,8 @@ func (fv *ItemView) importItems() error {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return err
+		fv.controller.logger.Log("Could not read items file")
 	}
-
-	return nil
 }
 
 func (fv *ItemView) handleEnter() {
@@ -129,6 +132,40 @@ func (fv *ItemView) updateView() {
 	}
 }
 
+func (fv *ItemView) editorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+	queryBefore := strings.TrimSpace(v.Buffer())
+	selectedItemBefore := fv.selectedItem
+
+	switch {
+	case ch != 0 && mod == 0:
+		v.EditWrite(ch)
+	case key == gocui.KeySpace:
+		v.EditWrite(' ')
+	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
+		v.EditDelete(true)
+	case key == gocui.KeyArrowDown:
+		if fv.selectedItem != len(fv.filteredItems)-1 {
+			fv.selectedItem++
+		}
+	case key == gocui.KeyArrowUp:
+		if fv.selectedItem != 0 {
+			fv.selectedItem--
+		}
+	case key == gocui.KeyEnter:
+		fv.handleEnter()
+		return
+	}
+
+	if query := strings.TrimSpace(v.Buffer()); query != queryBefore {
+		fv.searchItems(query)
+		fv.updateView()
+	}
+
+	if fv.selectedItem != selectedItemBefore {
+		fv.updateView()
+	}
+}
+
 func (fv *ItemView) setupView() error {
 	g := fv.controller.gui
 	maxX, _ := g.Size()
@@ -147,39 +184,7 @@ func (fv *ItemView) setupView() error {
 			return err
 		}
 
-		v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-			queryBefore := strings.TrimSpace(v.Buffer())
-			selectedItemBefore := fv.selectedItem
-
-			switch {
-			case ch != 0 && mod == 0:
-				v.EditWrite(ch)
-			case key == gocui.KeySpace:
-				v.EditWrite(' ')
-			case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
-				v.EditDelete(true)
-			case key == gocui.KeyArrowDown:
-				if fv.selectedItem != len(fv.filteredItems)-1 {
-					fv.selectedItem++
-				}
-			case key == gocui.KeyArrowUp:
-				if fv.selectedItem != 0 {
-					fv.selectedItem--
-				}
-			case key == gocui.KeyEnter:
-				fv.handleEnter()
-				return
-			}
-
-			if query := strings.TrimSpace(v.Buffer()); query != queryBefore {
-				fv.searchItems(query)
-				fv.updateView()
-			}
-
-			if fv.selectedItem != selectedItemBefore {
-				fv.updateView()
-			}
-		})
+		v.Editor = gocui.EditorFunc(fv.editorFunc)
 	}
 
 	return nil

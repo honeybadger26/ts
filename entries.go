@@ -34,7 +34,8 @@ func (e *Entries) Init(c *Controller) error {
 }
 
 func (e *Entries) RefreshEntries() {
-	e.controller.gui.Update(func(g *gocui.Gui) error {
+	c := e.controller
+	c.gui.Update(func(g *gocui.Gui) error {
 		v, err := g.View("entries")
 
 		if err != nil {
@@ -43,7 +44,8 @@ func (e *Entries) RefreshEntries() {
 
 		buf, err := os.Open("data/savedlogs")
 		if err != nil {
-			log.Panicln(err)
+			c.logger.Log("Could not open savedlogs file. This will created")
+			return nil
 		}
 
 		defer func() {

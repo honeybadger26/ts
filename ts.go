@@ -21,6 +21,7 @@ type Controller struct {
 	entries     *Entries
 }
 
+// TODO: form should be it's own component
 func (c *Controller) InitForm() {
 	c.itemView = &ItemView{}
 	c.hoursView = &HoursView{}
@@ -42,13 +43,11 @@ func (c *Controller) Init(g *gocui.Gui) {
 	c.InitForm()
 }
 
-func (c *Controller) NewEntry(g *gocui.Gui, v *gocui.View) error {
-	c.gui.DeleteKeybinding("", 'a', gocui.ModNone)
+func (c *Controller) NewEntry() {
 	c.itemView.Destroy()
 	c.hoursView.Destroy()
 	c.messageView.Destroy()
 	c.InitForm()
-	return nil
 }
 
 func (c *Controller) SubmitLog() {
@@ -66,9 +65,7 @@ func (c *Controller) SubmitLog() {
 		log.Panicln(err)
 	}
 
-	if err := c.gui.SetKeybinding("", 'a', gocui.ModNone, c.NewEntry); err != nil {
-		log.Panicln(err)
-	}
+	c.NewEntry()
 }
 
 /////////////////////////////////////////////////////////////
