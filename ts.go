@@ -19,6 +19,7 @@ type Controller struct {
 	hoursView   *HoursView
 	messageView *MessageView
 	entries     *Entries
+	helpView    *HelpView
 }
 
 // TODO: form should be it's own component
@@ -36,9 +37,11 @@ func (c *Controller) Init(g *gocui.Gui) {
 	c.gui = g
 	c.logger = &Logger{}
 	c.entries = &Entries{}
+	c.helpView = &HelpView{}
 
 	c.logger.Init(c)
 	c.entries.Init(c)
+	c.helpView.Init(c)
 
 	c.InitForm()
 }
