@@ -60,7 +60,6 @@ func (iv *ItemView) handleEnter() {
 }
 
 func (iv *ItemView) searchItems(query string) {
-	iv.selectedItem = -1
 	iv.filteredItems = nil
 
 	for _, item := range iv.items {
@@ -74,7 +73,10 @@ func (iv *ItemView) searchItems(query string) {
 		}
 	}
 
-	if len(iv.filteredItems) != 0 {
+	numResults := len(iv.filteredItems)
+	if numResults == 0 {
+		iv.selectedItem = -1
+	} else if iv.selectedItem < 0 || iv.selectedItem >= numResults {
 		iv.selectedItem = 0
 	}
 }
@@ -82,16 +84,17 @@ func (iv *ItemView) searchItems(query string) {
 func (iv *ItemView) updateView() {
 	g := iv.gui
 	maxX, _ := g.Size()
-	numResults := len(iv.filteredItems)
 
-	if numResults == 0 {
+	if iv.selectedItem == -1 {
 		g.DeleteView("item.results")
-		g.SetView("item", 0, 1, maxX/2-1, 3)
+		g.SetView("item", 1, 1, maxX/2-2, 4)
 		return
 	}
 
-	g.SetView("item", 0, 1, maxX/2-1, 5+numResults)
-	v, _ := g.SetView("item.results", 1, 3, maxX/2-2, 4+numResults)
+	numResults := len(iv.filteredItems)
+
+	g.SetView("item", 1, 1, maxX/2-2, 5+numResults)
+	v, _ := g.SetView("item.results", 2, 3, maxX/2-3, 4+numResults)
 
 	v.Clear()
 	for i, item := range iv.filteredItems {
@@ -138,7 +141,7 @@ func (iv *ItemView) GetItem(g *gocui.Gui) chan string {
 
 	maxX, _ := g.Size()
 
-	if v, err := g.SetView("item", 0, 1, maxX/2-1, 3); err != nil {
+	if v, err := g.SetView("item", 1, 1, maxX/2-2, 4); err != nil {
 		if err != gocui.ErrUnknownView {
 			return nil
 		}
@@ -146,7 +149,7 @@ func (iv *ItemView) GetItem(g *gocui.Gui) chan string {
 		v.Wrap = true
 		v.Editable = true
 		v.Frame = true
-		v.Title = "Item name"
+		v.Title = "Item"
 
 		if _, err := g.SetCurrentView("item"); err != nil {
 			return nil
