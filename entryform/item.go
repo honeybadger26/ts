@@ -1,7 +1,7 @@
 package entryform
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -10,14 +10,18 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
+type ItemData struct {
+	Name string
+}
+
 type ItemView struct {
 	gui *gocui.Gui
 
 	// List of all items user can log hours for
-	items []string
+	items []ItemData
 
 	// List of items filtered out after searching
-	filteredItems []string
+	filteredItems []ItemData
 
 	// Currently selected item. Shows '>' next to it
 	selectedItem int
@@ -28,24 +32,32 @@ type ItemView struct {
 }
 
 func (iv *ItemView) importItems() {
-	iv.items = []string{}
-	file, err := os.Open("data/items")
+	file, err := os.Open("data/items.json")
 
 	if err != nil {
 		// TODO fix this
 		// iv.controller.logger.Log("Could not open items file")
 		return
 	}
-
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		iv.items = append(iv.items, scanner.Text())
-	}
+	//	scanner := bufio.NewScanner(file)
+	//	for scanner.Scan() {
+	//		iv.items = append(iv.items, scanner.Text())
+	//	}
+	//
+	//	if err := scanner.Err(); err != nil {
+	//		// iv.controller.logger.Log("Could not read items file")
+	//	}
 
-	if err := scanner.Err(); err != nil {
-		// iv.controller.logger.Log("Could not read items file")
+	decoder := json.NewDecoder(file)
+	var data ItemData
+
+	decoder.Token()
+
+	for decoder.More() {
+		decoder.Decode(&data)
+		iv.items = append(iv.items, data)
 	}
 }
 
@@ -56,7 +68,7 @@ func (iv *ItemView) handleEnter() {
 
 	iv.gui.DeleteView("item.results")
 	iv.gui.DeleteView("item")
-	iv.item <- iv.filteredItems[iv.selectedItem]
+	iv.item <- iv.filteredItems[iv.selectedItem].Name
 }
 
 func (iv *ItemView) searchItems(query string) {
@@ -64,7 +76,7 @@ func (iv *ItemView) searchItems(query string) {
 
 	for _, item := range iv.items {
 		regexstr := `(?i)` + query
-		match, err := regexp.MatchString(regexstr, item)
+		match, err := regexp.MatchString(regexstr, item.Name)
 		if err != nil {
 			// handle error
 		}
@@ -74,24 +86,17 @@ func (iv *ItemView) searchItems(query string) {
 	}
 
 	numResults := len(iv.filteredItems)
-	if numResults == 0 {
-		iv.selectedItem = -1
-	} else if iv.selectedItem < 0 || iv.selectedItem >= numResults {
-		iv.selectedItem = 0
-	}
-}
-
-func (iv *ItemView) updateView() {
 	g := iv.gui
 	maxX, _ := g.Size()
 
-	if iv.selectedItem == -1 {
+	if numResults == 0 {
+		iv.selectedItem = -1
 		g.DeleteView("item.results")
-		g.SetView("item", 1, 1, maxX/2-2, 4)
+		g.SetView("item", 1, 1, maxX/2-2, 3)
 		return
+	} else if iv.selectedItem < 0 || iv.selectedItem >= numResults {
+		iv.selectedItem = 0
 	}
-
-	numResults := len(iv.filteredItems)
 
 	g.SetView("item", 1, 1, maxX/2-2, 5+numResults)
 	v, _ := g.SetView("item.results", 2, 3, maxX/2-3, 4+numResults)
@@ -99,9 +104,9 @@ func (iv *ItemView) updateView() {
 	v.Clear()
 	for i, item := range iv.filteredItems {
 		if i == iv.selectedItem {
-			fmt.Fprintln(v, `> `+item)
+			fmt.Fprintln(v, `> `+item.Name)
 		} else {
-			fmt.Fprintln(v, item)
+			fmt.Fprintln(v, item.Name)
 		}
 	}
 }
@@ -131,7 +136,6 @@ func (iv *ItemView) editorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.
 
 	query := strings.TrimSpace(v.Buffer())
 	iv.searchItems(query)
-	iv.updateView()
 }
 
 func (iv *ItemView) GetItem(g *gocui.Gui) chan string {
@@ -159,7 +163,6 @@ func (iv *ItemView) GetItem(g *gocui.Gui) chan string {
 
 		iv.importItems()
 		iv.searchItems("")
-		iv.updateView()
 	}
 
 	return iv.item
