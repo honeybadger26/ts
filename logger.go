@@ -16,7 +16,7 @@ func (l *Logger) Init(c *Controller) error {
 	g := c.gui
 	maxX, maxY := g.Size()
 
-	if v, err := g.SetView("LOGGING", maxX/2, maxY/2, maxX-1, maxY-1); err != nil {
+	if v, err := g.SetView("LOGGING", maxX/2, maxY-7, maxX-1, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}

@@ -29,6 +29,9 @@ type ItemView struct {
 	// Item that hours will be logged for. Chosen by user when pressing 'Enter' on
 	// selected item
 	item chan string
+
+	// Function that updates the info view
+	HandleItemChange func(string)
 }
 
 func (iv *ItemView) importItems() {
@@ -40,15 +43,6 @@ func (iv *ItemView) importItems() {
 		return
 	}
 	defer file.Close()
-
-	//	scanner := bufio.NewScanner(file)
-	//	for scanner.Scan() {
-	//		iv.items = append(iv.items, scanner.Text())
-	//	}
-	//
-	//	if err := scanner.Err(); err != nil {
-	//		// iv.controller.logger.Log("Could not read items file")
-	//	}
 
 	decoder := json.NewDecoder(file)
 	var data ItemData
@@ -109,6 +103,8 @@ func (iv *ItemView) searchItems(query string) {
 			fmt.Fprintln(v, item.Name)
 		}
 	}
+
+	iv.HandleItemChange(iv.filteredItems[iv.selectedItem].Name)
 }
 
 func (iv *ItemView) editorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {

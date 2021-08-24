@@ -17,6 +17,7 @@ type Controller struct {
 	form     *entryform.Form
 	entries  *Entries
 	helpView *HelpView
+	info     *InfoComponent
 }
 
 func (c *Controller) Init(g *gocui.Gui) {
@@ -26,8 +27,9 @@ func (c *Controller) Init(g *gocui.Gui) {
 	c.entries = &Entries{}
 	c.helpView = &HelpView{}
 
+	c.info = NewInfo(g)
 	c.logger.Init(c)
-	c.form.Init(g)
+	c.form.Init(g, c.info.UpdateInfo)
 	c.entries.Init(c)
 	c.helpView.Init(c)
 
@@ -38,6 +40,7 @@ func (c *Controller) Init(g *gocui.Gui) {
 	}()
 }
 
+// TODO: move this to form?
 func (c *Controller) SubmitLog() {
 	t := time.Now()
 	item, hours := c.form.AddEntry()

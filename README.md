@@ -10,3 +10,4 @@ A CLI helper for TimeSheet
 - Commands from CLI
     - View todays logs
     - Quick add log for item
+- Make suggestions for item look like same view
