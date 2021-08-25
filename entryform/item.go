@@ -87,6 +87,7 @@ func (iv *ItemView) searchItems(query string) {
 		iv.selectedItem = -1
 		g.DeleteView("item.results")
 		g.SetView("item", 1, 1, maxX/2-2, 3)
+		iv.HandleItemChange("")
 		return
 	} else if iv.selectedItem < 0 || iv.selectedItem >= numResults {
 		iv.selectedItem = 0

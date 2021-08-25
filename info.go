@@ -70,6 +70,10 @@ func (i *InfoComponent) UpdateInfo(item string) {
 
 	v.Clear()
 
+	if item == "" {
+		return
+	}
+
 	info := i.getItemInfo(item)
 	fmt.Fprintf(v, "Name: %s\n", info.Name)
 	fmt.Fprintf(v, "Description: %s\n", info.Description)
