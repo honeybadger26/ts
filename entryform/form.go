@@ -14,26 +14,27 @@ const (
 )
 
 type Form struct {
-	gui                  *gocui.Gui
-	handleItemChange     func(string)
-	handleEntrySubmitted func()
+	gui *gocui.Gui
+
+	HandleItemChange     func(string)
+	HandleEntrySubmitted func()
 }
 
-func (f *Form) Init(g *gocui.Gui, handleItemChange func(string), handleEntrySubmitted func()) {
+func NewForm(g *gocui.Gui) *Form {
+	f := &Form{}
 	f.gui = g
-	f.handleItemChange = handleItemChange
-	f.handleEntrySubmitted = handleEntrySubmitted
 
 	maxX, maxY := g.Size()
 	v, _ := g.SetView("entryform", 0, 0, maxX/2-1, maxY/2-1)
 	v.Title = "New Entry"
+	return f
 }
 
 func (f *Form) getEntryInfo() (string, int) {
 	v, _ := f.gui.View("entryform")
 
 	itemView := &ItemView{}
-	itemView.HandleItemChange = f.handleItemChange
+	itemView.HandleItemChange = f.HandleItemChange
 	item := <-itemView.GetItem(f.gui)
 	v.Clear()
 	fmt.Fprintf(v, "Item: %s\n", item)
@@ -70,5 +71,5 @@ func (f *Form) AddEntry() {
 	message := fmt.Sprintf(MSG_SUBMIT, hours, item)
 	fmt.Fprintln(v, message)
 
-	f.handleEntrySubmitted()
+	f.HandleEntrySubmitted()
 }

@@ -10,18 +10,18 @@ import (
 )
 
 type Entries struct {
-	controller *Controller
+	gui *gocui.Gui
 }
 
-func (e *Entries) Init(c *Controller) error {
-	e.controller = c
+func NewEntries(g *gocui.Gui) *Entries {
+	e := &Entries{}
+	e.gui = g
 
-	g := c.gui
 	maxX, maxY := g.Size()
 
 	if v, err := g.SetView("entries", maxX/2, 0, maxX-1, (maxY/2)-1); err != nil {
 		if err != gocui.ErrUnknownView {
-			return err
+			return nil
 		}
 		v.Wrap = true
 		v.Editable = false
@@ -30,12 +30,11 @@ func (e *Entries) Init(c *Controller) error {
 	}
 
 	e.RefreshEntries()
-	return nil
+	return e
 }
 
 func (e *Entries) RefreshEntries() {
-	c := e.controller
-	c.gui.Update(func(g *gocui.Gui) error {
+	e.gui.Update(func(g *gocui.Gui) error {
 		v, err := g.View("entries")
 
 		if err != nil {
@@ -44,7 +43,8 @@ func (e *Entries) RefreshEntries() {
 
 		buf, err := os.Open("data/savedlogs")
 		if err != nil {
-			c.logger.Log("Could not open savedlogs file. This will created")
+			// fix this
+			// c.logger.Log("Could not open savedlogs file. This will created")
 			return nil
 		}
 
