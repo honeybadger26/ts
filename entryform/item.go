@@ -10,6 +10,11 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
+const (
+	itemx0 = 1
+	itemy0 = 3
+)
+
 type ItemData struct {
 	Name string
 }
@@ -82,29 +87,34 @@ func (iv *ItemView) searchItems(query string) {
 	numResults := len(iv.filteredItems)
 	g := iv.gui
 	maxX, _ := g.Size()
+	itemx1 := maxX/2 - 2
 
 	if numResults == 0 {
 		iv.selectedItem = -1
 		g.DeleteView("item.results")
-		g.SetView("item", 1, 1, maxX/2-2, 3)
+		g.SetView("item", itemx0, itemy0, itemx1, itemy0+2)
 		iv.HandleItemChange("")
 		return
 	} else if iv.selectedItem < 0 || iv.selectedItem >= numResults {
 		iv.selectedItem = 0
 	}
 
-	g.SetView("item", 1, 1, maxX/2-2, 5+numResults)
-	v, _ := g.SetView("item.results", 2, 3, maxX/2-3, 4+numResults)
+	g.SetView("item", itemx0, itemy0, itemx1, itemy0+3+numResults)
+	v, _ := g.SetView("item.results", itemx0+1, itemy0+1, itemx1-1, itemy0+3+numResults)
+
+	v.Frame = false
 
 	v.Clear()
+	cols, _ := v.Size()
+	fmt.Fprintln(v, strings.Repeat("-", cols))
+
 	for i, item := range iv.filteredItems {
 		if i == iv.selectedItem {
-			fmt.Fprintln(v, `> `+item.Name)
+			fmt.Fprintf(v, "\x1b[0;34m> %s\x1b[0m\n", item.Name)
 		} else {
 			fmt.Fprintln(v, item.Name)
 		}
 	}
-
 	iv.HandleItemChange(iv.filteredItems[iv.selectedItem].Name)
 }
 
@@ -121,11 +131,11 @@ func (iv *ItemView) editorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.
 		v.EditWrite(' ')
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
-	case key == gocui.KeyArrowDown:
+	case key == gocui.KeyArrowDown || key == gocui.KeyCtrlJ:
 		if iv.selectedItem != len(iv.filteredItems)-1 {
 			iv.selectedItem++
 		}
-	case key == gocui.KeyArrowUp:
+	case key == gocui.KeyArrowUp || key == gocui.KeyCtrlK:
 		if iv.selectedItem != 0 {
 			iv.selectedItem--
 		}
@@ -142,7 +152,7 @@ func (iv *ItemView) GetItem(g *gocui.Gui) chan string {
 
 	maxX, _ := g.Size()
 
-	if v, err := g.SetView("item", 1, 1, maxX/2-2, 4); err != nil {
+	if v, err := g.SetView("item", itemx0, itemy0, maxX/2-2, itemy0+2); err != nil {
 		if err != gocui.ErrUnknownView {
 			return nil
 		}
@@ -150,7 +160,6 @@ func (iv *ItemView) GetItem(g *gocui.Gui) chan string {
 		v.Wrap = true
 		v.Editable = true
 		v.Frame = true
-		v.Title = "Item"
 
 		if _, err := g.SetCurrentView("item"); err != nil {
 			return nil

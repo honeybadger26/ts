@@ -12,7 +12,12 @@ func NewHelp(g *gocui.Gui) *HelpView {
 	h := &HelpView{}
 	maxX, maxY := g.Size()
 
-	if v, err := g.SetView("help", 0, maxY-3, (maxX/2)-1, maxY-1); err != nil {
+	helpstr := "" +
+		"<Ctrl-j> (when entering item) select next item \n" +
+		"<Ctrl-k> (when entering item) select previous item \n" +
+		"<Ctrl-c> to quit"
+
+	if v, err := g.SetView("help", 0, maxY-2-3, (maxX/2)-1, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return nil
 		}
@@ -20,7 +25,7 @@ func NewHelp(g *gocui.Gui) *HelpView {
 		v.Wrap = true
 		v.Frame = false
 
-		fmt.Fprintln(v, "<Ctrl-c> to quit")
+		fmt.Fprintf(v, helpstr)
 	}
 
 	return h

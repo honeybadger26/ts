@@ -11,3 +11,4 @@ A CLI helper for TimeSheet
     - View todays logs
     - Quick add log for item
 - Make suggestions for item look like same view
+- Show date for entry in form

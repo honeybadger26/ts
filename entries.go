@@ -1,12 +1,15 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/jroimartin/gocui"
+)
+
+const (
+	SAVED_LOGS_FILE = "data/savedlogs.json"
 )
 
 type Entries struct {
@@ -26,43 +29,48 @@ func NewEntries(g *gocui.Gui) *Entries {
 		v.Wrap = true
 		v.Editable = false
 		v.Frame = true
-		v.Title = "Entries for today"
+		v.Title = "Entries"
 	}
 
 	e.RefreshEntries()
 	return e
 }
 
+// repeated code - put this in own file
+type EntryData struct {
+	Date  string
+	Item  string
+	Hours int
+}
+
 func (e *Entries) RefreshEntries() {
 	e.gui.Update(func(g *gocui.Gui) error {
 		v, err := g.View("entries")
+		v.Clear()
+		cols, _ := v.Size()
+		padding := cols/3 - 1
 
 		if err != nil {
 			return err
 		}
 
-		buf, err := os.Open("data/savedlogs")
-		if err != nil {
-			// fix this
-			// c.logger.Log("Could not open savedlogs file. This will created")
-			return nil
-		}
+		file, _ := os.Open(SAVED_LOGS_FILE)
+		defer file.Close()
 
-		defer func() {
-			if err = buf.Close(); err != nil {
-				log.Fatal(err)
+		decoder := json.NewDecoder(file)
+		decoder.Token()
+		var data EntryData
+
+		count := 0
+		for decoder.More() {
+			decoder.Decode(&data)
+
+			if count%2 == 0 {
+				fmt.Fprintf(v, "%-*s %-*s %*d\n", padding, data.Date, padding, data.Item, padding, data.Hours)
+			} else {
+				fmt.Fprintf(v, "\x1b[0;33m%-*s %-*s %*d\x1b[0m\n", padding, data.Date, padding, data.Item, padding, data.Hours)
 			}
-		}()
-
-		snl := bufio.NewScanner(buf)
-
-		v.Clear()
-		for snl.Scan() {
-			fmt.Fprintln(v, snl.Text())
-		}
-
-		if err := snl.Err(); err != nil {
-			log.Fatal(err)
+			count++
 		}
 
 		return nil

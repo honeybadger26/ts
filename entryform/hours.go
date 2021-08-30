@@ -37,9 +37,8 @@ func (hv *HoursView) GetHours(g *gocui.Gui) chan int {
 	hv.gui = g
 	maxX, _ := g.Size()
 
-	if v, err := g.SetView("hours", 1, 3, maxX/2-2, 5); err != nil {
+	if v, err := g.SetView("hours", 1, 4, maxX/2-2, 6); err != nil {
 		v.Editable = true
-		v.Title = "Hours"
 
 		if _, err := g.SetCurrentView("hours"); err != nil {
 			return nil

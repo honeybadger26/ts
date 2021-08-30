@@ -75,8 +75,8 @@ func (i *InfoComponent) UpdateInfo(item string) {
 	}
 
 	info := i.getItemInfo(item)
-	fmt.Fprintf(v, "Name: %s\n", info.Name)
-	fmt.Fprintf(v, "Description: %s\n", info.Description)
-	fmt.Fprintf(v, "Size: %s\n", info.Size)
-	fmt.Fprintf(v, "Total Hours: %f\n", info.TotalHours)
+	fmt.Fprintf(v, "Name:           %s\n", info.Name)
+	fmt.Fprintf(v, "Description:    %s\n", info.Description)
+	fmt.Fprintf(v, "Size:           %s\n", info.Size)
+	fmt.Fprintf(v, "Total Hours:    %f\n", info.TotalHours)
 }

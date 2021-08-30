@@ -1,8 +1,9 @@
 package entryform
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -10,7 +11,8 @@ import (
 )
 
 const (
-	MSG_SUBMIT = "\x1b[0;32mSuccessfully submitted %d hour(s) for %s\x1b[0m"
+	MSG_SUBMIT      = "\x1b[0;32m  Successfully submitted %d hour(s) for %s\x1b[0m"
+	SAVED_LOGS_FILE = "data/savedlogs.json"
 )
 
 type Form struct {
@@ -30,46 +32,52 @@ func NewForm(g *gocui.Gui) *Form {
 	return f
 }
 
-func (f *Form) getEntryInfo() (string, int) {
-	v, _ := f.gui.View("entryform")
+type EntryData struct {
+	Date  string
+	Item  string
+	Hours int
+}
 
+func (f *Form) getEntryInfo() *EntryData {
+	entry := &EntryData{}
+	v, _ := f.gui.View("entryform")
+	v.Clear()
+
+	t := time.Now()
+	entry.Date = t.Format("02/01/2006")
+	fmt.Fprintf(v, "Date: %s\n", entry.Date)
+
+	fmt.Fprintf(v, "Item: ")
 	itemView := &ItemView{}
 	itemView.HandleItemChange = f.HandleItemChange
-	item := <-itemView.GetItem(f.gui)
-	v.Clear()
-	fmt.Fprintf(v, "Item: %s\n", item)
+	entry.Item = <-itemView.GetItem(f.gui)
+	fmt.Fprintf(v, "%s\n", entry.Item)
 
+	fmt.Fprintf(v, "Hours: ")
 	hoursView := &HoursView{}
-	hours := <-hoursView.GetHours(f.gui)
-	fmt.Fprintf(v, "Hours: %d\n", hours)
+	entry.Hours = <-hoursView.GetHours(f.gui)
+	fmt.Fprintf(v, "%d\n", entry.Hours)
 
-	return item, hours
+	return entry
 }
 
 func (f *Form) AddEntry() {
-	t := time.Now()
-	item, hours := f.getEntryInfo()
+	entry := f.getEntryInfo()
+	var entries []EntryData
 
-	line := fmt.Sprintf("%s, %s, %d\n", t.Format("02/01/2006"), item, hours)
-
-	file, err := os.OpenFile("data/savedlogs", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
-	if err != nil {
-		log.Panicln(err)
+	if _, err := os.Stat(SAVED_LOGS_FILE); os.IsNotExist(err) {
+		os.OpenFile(SAVED_LOGS_FILE, os.O_CREATE|os.O_WRONLY, 0644)
+	} else {
+		data, _ := ioutil.ReadFile(SAVED_LOGS_FILE)
+		json.Unmarshal(data, &entries)
 	}
+
+	entries = append(entries, *entry)
+	file, _ := os.OpenFile(SAVED_LOGS_FILE, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	defer file.Close()
 
-	if _, err := file.WriteString(line); err != nil {
-		log.Panicln(err)
-	}
-
-	v, _ := f.gui.View("entryform")
-	_, rows := v.Size()
-	for i := 0; i < rows-3; i++ {
-		fmt.Fprintln(v, "")
-	}
-	message := fmt.Sprintf(MSG_SUBMIT, hours, item)
-	fmt.Fprintln(v, message)
+	writedata, _ := json.Marshal(entries)
+	file.WriteString(string(writedata))
 
 	f.HandleEntrySubmitted()
 }
