@@ -16,12 +16,14 @@ type ItemData struct {
 }
 
 type InfoComponent struct {
-	gui *gocui.Gui
+	gui  *gocui.Gui
+	item chan string
 }
 
-func NewInfo(g *gocui.Gui) *InfoComponent {
+func NewInfo(g *gocui.Gui, item chan string) *InfoComponent {
 	i := &InfoComponent{}
 	i.gui = g
+	i.item = item
 
 	maxX, maxY := g.Size()
 
@@ -34,6 +36,13 @@ func NewInfo(g *gocui.Gui) *InfoComponent {
 		v.Frame = true
 		v.Title = "Item Info"
 	}
+
+	go func() {
+		for {
+			item := <-i.item
+			i.updateInfo(item)
+		}
+	}()
 
 	return i
 }
@@ -61,22 +70,26 @@ func (i *InfoComponent) getItemInfo(item string) *ItemData {
 	return &data
 }
 
-func (i *InfoComponent) UpdateInfo(item string) {
-	v, err := i.gui.View("info")
+func (i *InfoComponent) updateInfo(item string) {
+	i.gui.Update(func(g *gocui.Gui) error {
+		v, err := g.View("info")
 
-	if err != nil {
-		return
-	}
+		if err != nil {
+			return err
+		}
 
-	v.Clear()
+		v.Clear()
 
-	if item == "" {
-		return
-	}
+		if item == "" {
+			return nil
+		}
 
-	info := i.getItemInfo(item)
-	fmt.Fprintf(v, "Name:           %s\n", info.Name)
-	fmt.Fprintf(v, "Description:    %s\n", info.Description)
-	fmt.Fprintf(v, "Size:           %s\n", info.Size)
-	fmt.Fprintf(v, "Total Hours:    %f\n", info.TotalHours)
+		info := i.getItemInfo(item)
+		fmt.Fprintf(v, "Name:           %s\n", info.Name)
+		fmt.Fprintf(v, "Description:    %s\n", info.Description)
+		fmt.Fprintf(v, "Size:           %s\n", info.Size)
+		fmt.Fprintf(v, "Total Hours:    %f\n", info.TotalHours)
+
+		return nil
+	})
 }

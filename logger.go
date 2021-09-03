@@ -38,6 +38,12 @@ func (l *Logger) Log(text string) {
 		}
 
 		fmt.Fprintln(v, text)
+
+		_, vHeight := v.Size()
+		if len(v.BufferLines()) > vHeight {
+			originx, originy := v.Origin()
+			v.SetOrigin(originx, originy+1)
+		}
 		return nil
 	})
 }

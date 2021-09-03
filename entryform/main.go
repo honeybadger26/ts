@@ -18,13 +18,14 @@ const (
 type Form struct {
 	gui *gocui.Gui
 
-	HandleItemChange     func(string)
+	itemToSend           chan string
 	HandleEntrySubmitted func()
 }
 
-func NewForm(g *gocui.Gui) *Form {
+func NewForm(g *gocui.Gui, itemToSend chan string) *Form {
 	f := &Form{}
 	f.gui = g
+	f.itemToSend = itemToSend
 
 	maxX, maxY := g.Size()
 	v, _ := g.SetView("entryform", 0, 0, maxX/2-1, maxY/2-1)
@@ -49,8 +50,7 @@ func (f *Form) getEntryInfo() *EntryData {
 
 	fmt.Fprintf(v, "Item: ")
 	itemView := &ItemView{}
-	itemView.HandleItemChange = f.HandleItemChange
-	entry.Item = <-itemView.GetItem(f.gui)
+	entry.Item = <-itemView.GetItem(f.gui, f.itemToSend)
 	fmt.Fprintf(v, "%s\n", entry.Item)
 
 	fmt.Fprintf(v, "Hours: ")

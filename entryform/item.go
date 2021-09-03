@@ -35,8 +35,8 @@ type ItemView struct {
 	// selected item
 	item chan string
 
-	// Function that updates the info view
-	HandleItemChange func(string)
+	// Item that is updated for info
+	itemToSend chan string
 }
 
 func (iv *ItemView) importItems() {
@@ -93,7 +93,7 @@ func (iv *ItemView) searchItems(query string) {
 		iv.selectedItem = -1
 		g.DeleteView("item.results")
 		g.SetView("item", itemx0, itemy0, itemx1, itemy0+2)
-		iv.HandleItemChange("")
+		iv.itemToSend <- ""
 		return
 	} else if iv.selectedItem < 0 || iv.selectedItem >= numResults {
 		iv.selectedItem = 0
@@ -115,7 +115,7 @@ func (iv *ItemView) searchItems(query string) {
 			fmt.Fprintln(v, item.Name)
 		}
 	}
-	iv.HandleItemChange(iv.filteredItems[iv.selectedItem].Name)
+	iv.itemToSend <- iv.filteredItems[iv.selectedItem].Name
 }
 
 func (iv *ItemView) editorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
@@ -145,9 +145,11 @@ func (iv *ItemView) editorFunc(v *gocui.View, key gocui.Key, ch rune, mod gocui.
 	iv.searchItems(query)
 }
 
-func (iv *ItemView) GetItem(g *gocui.Gui) chan string {
+// use the item channel from main?
+func (iv *ItemView) GetItem(g *gocui.Gui, itemToSend chan string) chan string {
 	iv.gui = g
 	iv.selectedItem = -1
+	iv.itemToSend = itemToSend
 	iv.item = make(chan string)
 
 	maxX, _ := g.Size()
