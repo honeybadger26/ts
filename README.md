@@ -13,3 +13,4 @@ A CLI helper for TimeSheet
     - View todays logs
     - Quick add log for item
 - Automatic entry for a date range OR Copy previous days entries
+- Handle long list of items
