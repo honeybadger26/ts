@@ -2,13 +2,12 @@
 A CLI helper for TimeSheet
 
 ## Todo
-- Delete entries (re-enter item with 0 hours)
-- Update entries (re-enter item with new hours)
 - Total hours logged today
+- Switch between item types (My work, My teams work, other)
+- Restrict list of entries for particular day
 - See info for currently selected item:
     - Total hours logged to date
-- Handle file not exists (items file)
-- List of hours already logged for current day ONLY
+- Handle file not exists
 - Commands from CLI
     - View todays logs
     - Quick add log for item

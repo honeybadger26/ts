@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/jroimartin/gocui"
 )
@@ -33,34 +31,9 @@ func logger(g *gocui.Gui, text string) {
 	})
 }
 
-type ItemData struct {
-	Name        string
-	Description string
-	Size        string
-	TotalHours  float32
-}
-
 func printItemInfo(g *gocui.Gui, itemName string) {
-	file, err := os.Open("data/items.json")
-
-	if err != nil {
-		log.Panicln(err)
-	}
-	defer file.Close()
-
-	decoder := json.NewDecoder(file)
-	found := false
-	var item ItemData
-
-	decoder.Token()
-
-	for decoder.More() {
-		decoder.Decode(&item)
-		if item.Name == itemName {
-			found = true
-			break
-		}
-	}
+	db := Database{}
+	item := db.getItem(itemName)
 
 	g.Update(func(g *gocui.Gui) error {
 		v, err := g.View(INFO_VIEW)
@@ -71,14 +44,18 @@ func printItemInfo(g *gocui.Gui, itemName string) {
 
 		v.Clear()
 
-		if !found {
+		if item == nil {
 			return nil
 		}
 
 		fmt.Fprintf(v, "Name:           %s\n", item.Name)
 		fmt.Fprintf(v, "Description:    %s\n", item.Description)
-		fmt.Fprintf(v, "Size:           %s\n", item.Size)
-		fmt.Fprintf(v, "Total Hours:    %f\n", item.TotalHours)
+		if item.Size != "" {
+			fmt.Fprintf(v, "Size:           %s\n", item.Size)
+		}
+		if item.TotalHours != -1 {
+			fmt.Fprintf(v, "Total Hours:    %f\n", item.TotalHours)
+		}
 
 		return nil
 	})
@@ -116,28 +93,7 @@ func printHelp(g *gocui.Gui, view string) {
 	})
 }
 
-const SAVED_LOGS_FILE = "data/savedlogs.json"
-
-type EntryData struct {
-	Date  string
-	Item  string
-	Hours int
-}
-
 func printEntries(g *gocui.Gui) {
-	file, _ := os.Open(SAVED_LOGS_FILE)
-	defer file.Close()
-
-	decoder := json.NewDecoder(file)
-	decoder.Token()
-	var entries []EntryData
-	var entry EntryData
-
-	for decoder.More() {
-		decoder.Decode(&entry)
-		entries = append(entries, entry)
-	}
-
 	g.Update(func(g *gocui.Gui) error {
 		v, err := g.View(ENTRIES_VIEW)
 
@@ -146,7 +102,10 @@ func printEntries(g *gocui.Gui) {
 		}
 
 		v.Clear()
-		cols, _ := v.Size()
+
+		db := Database{}
+		entries := db.getEntries()
+		cols, rows := v.Size()
 		padding := cols/3 - 1
 
 		for i, e := range entries {
@@ -158,6 +117,13 @@ func printEntries(g *gocui.Gui) {
 
 			fmt.Fprintln(v, rowText)
 		}
+
+		for len(v.BufferLines()) < rows {
+			fmt.Fprintln(v, "")
+		}
+
+		pretext := "Total"
+		fmt.Fprintf(v, "\x1b[0;32m%s %*d\x1b[0m", pretext, cols-len(pretext)-2, db.getTotalHours())
 
 		return nil
 	})
@@ -206,7 +172,6 @@ func main() {
 	g.Cursor = true
 	g.Mouse = false
 
-	// initialiseViews(g)
 	initApp(g)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {

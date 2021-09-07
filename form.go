@@ -1,11 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,8 +11,8 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-func filterItems(g *gocui.Gui, allItems []ItemData, query string) []ItemData {
-	filteredItems := []ItemData{}
+func filterItems(g *gocui.Gui, allItems []Item, query string) []Item {
+	filteredItems := []Item{}
 
 	for _, item := range allItems {
 		regexstr := `(?i)` + query
@@ -32,15 +28,12 @@ func filterItems(g *gocui.Gui, allItems []ItemData, query string) []ItemData {
 	return filteredItems
 }
 
-func updateItemView(g *gocui.Gui, items []ItemData, index int) {
+func updateItemView(g *gocui.Gui, items []Item, index int) {
 	g.DeleteView(ITEM_VIEW)
-	printHelp(g, "")
 
-	if len(items) == 0 {
+	if len(items) == 0 || index == -1 {
 		return
 	}
-
-	printHelp(g, ITEM_VIEW)
 
 	fv, _ := g.View(FORM_VIEW)
 	p := VIEW_PROPS[FORM_VIEW]
@@ -70,23 +63,8 @@ func updateItemView(g *gocui.Gui, items []ItemData, index int) {
 }
 
 func getItem(g *gocui.Gui) string {
-	items := []ItemData{}
-	file, err := os.Open("data/items.json")
-
-	if err != nil {
-		log.Panicln(err)
-	}
-	defer file.Close()
-
-	decoder := json.NewDecoder(file)
-	var data ItemData
-
-	decoder.Token()
-
-	for decoder.More() {
-		decoder.Decode(&data)
-		items = append(items, data)
-	}
+	db := Database{}
+	items := db.getItems()
 
 	v, _ := g.View(FORM_VIEW)
 	buffer := v.BufferLines()
@@ -102,6 +80,9 @@ func getItem(g *gocui.Gui) string {
 	if len(filteredItems) != 0 {
 		selectedIndex = 0
 		printItemInfo(g, filteredItems[selectedIndex].Name)
+		printHelp(g, ITEM_VIEW)
+	} else {
+		printHelp(g, "")
 	}
 	updateItemView(g, filteredItems, selectedIndex)
 
@@ -152,6 +133,9 @@ func getItem(g *gocui.Gui) string {
 			if len(filteredItems) != 0 {
 				selectedIndex = 0
 				printItemInfo(g, filteredItems[selectedIndex].Name)
+				printHelp(g, ITEM_VIEW)
+			} else {
+				printHelp(g, "")
 			}
 			updateItemView(g, filteredItems, selectedIndex)
 		}
@@ -196,7 +180,7 @@ func getHours(g *gocui.Gui) int {
 }
 
 func addNewEntry(g *gocui.Gui) {
-	entry := &EntryData{}
+	entry := Entry{}
 
 	v, _ := g.View(FORM_VIEW)
 	g.SetCurrentView(FORM_VIEW)
@@ -218,22 +202,14 @@ func addNewEntry(g *gocui.Gui) {
 
 	v.Editable = false
 
-	var entries []EntryData
+	db := Database{}
+	db.saveEntry(entry)
 
-	if _, err := os.Stat(SAVED_LOGS_FILE); os.IsNotExist(err) {
-		os.OpenFile(SAVED_LOGS_FILE, os.O_CREATE|os.O_WRONLY, 0644)
+	var msg string
+	if entry.Hours == 0 {
+		msg = fmt.Sprintf("Removed entry: %s on %s", entry.Item, entry.Date)
 	} else {
-		data, _ := ioutil.ReadFile(SAVED_LOGS_FILE)
-		json.Unmarshal(data, &entries)
+		msg = fmt.Sprintf("Submitted entry: %s for %d hours on %s", entry.Item, entry.Hours, entry.Date)
 	}
-
-	entries = append(entries, *entry)
-	file, _ := os.OpenFile(SAVED_LOGS_FILE, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	defer file.Close()
-
-	writedata, _ := json.Marshal(entries)
-	file.WriteString(string(writedata))
-
-	msg := fmt.Sprintf("Successfully submitted entry for: %s for %d hours on %s", entry.Item, entry.Hours, entry.Date)
 	logger(g, msg)
 }
