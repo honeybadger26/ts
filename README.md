@@ -2,7 +2,7 @@
 A CLI helper for TimeSheet
 
 ## Instructions
-- Create a `data` folder and 2 files:
+- Create a `data` folder
 - Create a `items.json` in the `data` folder with the following format:
 ```
 [
