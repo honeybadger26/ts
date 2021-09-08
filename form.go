@@ -28,11 +28,16 @@ func filterItems(g *gocui.Gui, allItems []Item, query string) []Item {
 	return filteredItems
 }
 
-func updateItemView(g *gocui.Gui, items []Item, index int) {
-	g.DeleteView(ITEM_VIEW)
-
-	if len(items) == 0 || index == -1 {
+func updateItemView(g *gocui.Gui, category ItemType, items []Item, index int) {
+	validIndex := (index >= 0) && (index <= (len(items) - 1))
+	if len(items) != 0 && !validIndex {
 		return
+	}
+
+	printHelp(g, ITEM_VIEW)
+
+	if validIndex {
+		printItemInfo(g, items[index].Name)
 	}
 
 	fv, _ := g.View(FORM_VIEW)
@@ -43,15 +48,24 @@ func updateItemView(g *gocui.Gui, items []Item, index int) {
 	x1 := int(p.x1*float32(maxX)) - 1 - 1
 	y1 := int(p.y1*float32(maxY)) - 1 - 1
 
-	if iv, err := g.SetView(ITEM_VIEW, x0, y0, x1, y1); err != nil {
-		if err != gocui.ErrUnknownView {
-			return
-		}
+	iv, err := g.SetView(ITEM_VIEW, x0, y0, x1, y1)
 
-		iv.Wrap = true
-		iv.Editable = VIEW_PROPS[ITEM_VIEW].editable
-		iv.Frame = VIEW_PROPS[ITEM_VIEW].frame
+	if err == nil {
+		iv.Clear()
+	} else if err != gocui.ErrUnknownView {
+		return
+	}
 
+	iv.Wrap = true
+	iv.Editable = VIEW_PROPS[ITEM_VIEW].editable
+	iv.Frame = VIEW_PROPS[ITEM_VIEW].frame
+	cols, rows := iv.Size()
+
+	iv.Clear()
+
+	if len(items) == 0 {
+		fmt.Fprintf(iv, "\x1b[0;31mNo results\x1b[0m\n")
+	} else {
 		for i, item := range items {
 			if i == index {
 				fmt.Fprintf(iv, "\x1b[0;34m> %s\x1b[0m\n", item.Name)
@@ -60,11 +74,18 @@ func updateItemView(g *gocui.Gui, items []Item, index int) {
 			}
 		}
 	}
+
+	for len(iv.BufferLines()) < rows {
+		fmt.Fprintln(iv, "")
+	}
+
+	fmt.Fprintf(iv, "%*s", cols, category)
 }
 
 func getItem(g *gocui.Gui) string {
 	db := Database{}
-	items := db.getItems()
+	category := All
+	items := db.getItems(category)
 
 	v, _ := g.View(FORM_VIEW)
 	buffer := v.BufferLines()
@@ -79,12 +100,8 @@ func getItem(g *gocui.Gui) string {
 	filteredItems := filterItems(g, items, "")
 	if len(filteredItems) != 0 {
 		selectedIndex = 0
-		printItemInfo(g, filteredItems[selectedIndex].Name)
-		printHelp(g, ITEM_VIEW)
-	} else {
-		printHelp(g, "")
 	}
-	updateItemView(g, filteredItems, selectedIndex)
+	updateItemView(g, category, filteredItems, selectedIndex)
 
 	v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		buf := v.BufferLines()
@@ -96,15 +113,13 @@ func getItem(g *gocui.Gui) string {
 			if selectedIndex < len(filteredItems)-1 {
 				selectedIndex++
 			}
-			updateItemView(g, filteredItems, selectedIndex)
-			printItemInfo(g, filteredItems[selectedIndex].Name)
+			updateItemView(g, category, filteredItems, selectedIndex)
 			return
 		case key == gocui.KeyArrowUp || key == gocui.KeyCtrlK:
 			if selectedIndex > 0 {
 				selectedIndex--
 			}
-			updateItemView(g, filteredItems, selectedIndex)
-			printItemInfo(g, filteredItems[selectedIndex].Name)
+			updateItemView(g, category, filteredItems, selectedIndex)
 			return
 		case key == gocui.KeyEnter:
 			if selectedIndex != -1 {
@@ -121,6 +136,20 @@ func getItem(g *gocui.Gui) string {
 			if newCursorX, newCursorY := v.Cursor(); newCursorX == cX && newCursorY == cY {
 				return
 			}
+		case mod == gocui.ModAlt && ch == 'l':
+			category = (category + 1) % ITEMTYPE_COUNT
+			items = db.getItems(category)
+			filteredItems = filterItems(g, items, oldInput)
+			selectedIndex = 0
+			updateItemView(g, category, filteredItems, selectedIndex)
+			return
+		case mod == gocui.ModAlt && ch == 'h':
+			category = (category + ITEMTYPE_COUNT - 1) % ITEMTYPE_COUNT
+			items = db.getItems(category)
+			filteredItems = filterItems(g, items, oldInput)
+			selectedIndex = 0
+			updateItemView(g, category, filteredItems, selectedIndex)
+			return
 		}
 		gocui.DefaultEditor.Edit(v, key, ch, mod)
 
@@ -132,12 +161,8 @@ func getItem(g *gocui.Gui) string {
 			filteredItems = filterItems(g, items, newInput)
 			if len(filteredItems) != 0 {
 				selectedIndex = 0
-				printItemInfo(g, filteredItems[selectedIndex].Name)
-				printHelp(g, ITEM_VIEW)
-			} else {
-				printHelp(g, "")
 			}
-			updateItemView(g, filteredItems, selectedIndex)
+			updateItemView(g, category, filteredItems, selectedIndex)
 		}
 	})
 

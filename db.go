@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,11 +13,33 @@ const (
 	SAVED_LOGS_FILE = "data/savedlogs.json"
 )
 
+type ItemType int
+
+const (
+	All ItemType = iota
+	CR
+	Admin
+)
+const ITEMTYPE_COUNT = 3
+
+func (it ItemType) String() string {
+	switch it {
+	case All:
+		return "All"
+	case CR:
+		return "CR"
+	case Admin:
+		return "Admin"
+	}
+	return ""
+}
+
 type Item struct {
 	Name        string
 	Description string
 	Size        string
 	TotalHours  float32
+	Type        string
 }
 
 type Entry struct {
@@ -27,7 +50,7 @@ type Entry struct {
 
 type Database struct{}
 
-func (db *Database) getItems() []Item {
+func (db *Database) getItems(it ItemType) []Item {
 	file, err := os.Open(ITEMS_FILE)
 
 	if err != nil {
@@ -36,21 +59,23 @@ func (db *Database) getItems() []Item {
 	defer file.Close()
 
 	items := []Item{}
-	var data Item
+	var item Item
 
 	decoder := json.NewDecoder(file)
 	decoder.Token()
 
 	for decoder.More() {
-		decoder.Decode(&data)
-		items = append(items, data)
+		decoder.Decode(&item)
+		if it == All || item.Type == fmt.Sprint(it) {
+			items = append(items, item)
+		}
 	}
 
 	return items
 }
 
 func (db *Database) getItem(name string) *Item {
-	items := db.getItems()
+	items := db.getItems(All)
 	for _, item := range items {
 		if item.Name == name {
 			return &item

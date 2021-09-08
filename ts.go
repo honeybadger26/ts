@@ -63,7 +63,10 @@ func printItemInfo(g *gocui.Gui, itemName string) {
 
 var HELP_TEXT = map[string]string{
 	ITEM_VIEW: `<Ctrl-j> Select next item
-<Ctrl-k> Select previous item`,
+<Ctrl-k> Select previous item
+<Enter> Confirm selected item
+<Alt-l> Next category
+<Alt-h> Previous category`,
 	"APP": `<Ctrl-c> Quit`,
 }
 
