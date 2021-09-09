@@ -35,7 +35,7 @@ A CLI helper for TimeSheet
     - Quick add log for item
     - Quick add hours for all favorites
 - Automatic entry for a date range (FOR ADMIN ONLY ? TBC /W Alison) OR Copy previous days entries
-    - Confirmation dialog 
+    - Make the user confirm their entry (date + all items /w hours) & option to 'Save' & option to 'Cancel'
 - Handle long list of items
 - Switch between days of the week
 - Switch between different weeks
@@ -45,4 +45,4 @@ A CLI helper for TimeSheet
     2. Select item(s)
     3. Then take focus to a different grid with all items from Step 2 (like the lower grid in existing Timesheet)
     4. One-by-one for each item, user can enter hours
-    5. Confirmation dialog showing date + all items /w hours entered & 'Save' button & a 'Back' / 'Amend' button (Take back to Step 4, retain the data initially entered etc.)
+    5. Make the user confirm their entry (date + all items /w hours) & option to 'Save' & option to 'Back' / 'Amend' (Take back to Step 4, retain the data initially entered etc.)
