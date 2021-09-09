@@ -29,6 +29,7 @@ A CLI helper for TimeSheet
 - Switch between item types (My work, My teams work, other)
     - Have the current category of item displayed at top (make it obvious)
     - Add a favorites category ( & functionality to add / remove favorite items)
+    - OR instead of Favorites, maybe a 'Most Recent' category. I tend to rotate between about ~5 items at any one time and this wouldn't require user to set favorites.
 - Restrict list of entries for particular day
 - See info for currently selected item:
     - Total hours logged to date (MUST HAVE FOR CR'S)
