@@ -22,7 +22,10 @@ A CLI helper for TimeSheet
 - Run `go run .`
 
 ## Todo
+- Total hours logged this week
+    - Breakdown of the hours into days 
 - Total hours logged today
+    - Breakdown of the hours into items
 - Switch between item types (My work, My teams work, other)
     - Have the current category of item displayed at top (make it obvious)
     - Add a favorites category ( & functionality to add / remove favorite items)
