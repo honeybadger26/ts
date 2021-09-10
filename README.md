@@ -44,6 +44,7 @@ A CLI helper for TimeSheet
 - Handle long list of text (items and entries). Maybe tab between each window and then let the user scroll?
 - Switch between days of the week
 - Switch between different weeks
+    - Add indication that user is not on current week
 - Functionality to easily amend any day's logged hours
     - Simon: At the moment you can do this by reentering the entry. So to amend CR-1234 you would add another entry for CR-1234 with the correct hours and this will update it. Thoughts on this? I feel like there is probably a better way of doing it
     - Simon: Also deleteing is the same as amending except enter the new hours as 0
@@ -53,3 +54,4 @@ A CLI helper for TimeSheet
     3. Then take focus to a different grid with all items from Step 2 (like the lower grid in existing Timesheet)
     4. One-by-one for each item, user can enter hours
     5. Make the user confirm their entry (date + all items /w hours) & option to 'Save' & option to 'Back' / 'Amend' (Take back to Step 4, retain the data initially entered etc.)
+- Be able to sign out of whiteboard

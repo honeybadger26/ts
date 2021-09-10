@@ -62,8 +62,8 @@ func printItemInfo(g *gocui.Gui, itemName string) {
 }
 
 var HELP_TEXT = map[string]string{
-	ITEM_VIEW: `<Ctrl-j> Select next item
-<Ctrl-k> Select previous item
+	ITEM_VIEW: `<Ctrl-j> OR <Down> Select next item
+<Ctrl-k> OR <Up> Select previous item
 <Enter> Confirm selected item
 <Alt-l> Next category
 <Alt-h> Previous category`,
@@ -87,7 +87,7 @@ func printHelp(g *gocui.Gui, view string) {
 		fmt.Fprintf(v, HELP_TEXT["APP"])
 
 		_, rows := v.Size()
-		for len(v.BufferLines()) != rows {
+		for len(v.BufferLines()) < rows {
 			v.SetCursor(0, 0)
 			v.EditNewLine()
 		}
@@ -141,6 +141,11 @@ func initApp(g *gocui.Gui) {
 		y0 := int(p.y0 * float32(maxY))
 		x1 := int(p.x1*float32(maxX)) - 1
 		y1 := int(p.y1*float32(maxY)) - 1
+
+		if !p.frame {
+			y0 = y0 - 1
+			y1 = y1 + 1
+		}
 
 		if v, err := g.SetView(name, x0, y0, x1, y1); err != nil {
 			if err != gocui.ErrUnknownView {
