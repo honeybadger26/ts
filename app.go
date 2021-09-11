@@ -8,6 +8,7 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
+// should move this to a constants file with views.go
 var HELP_TEXT = map[string]string{
 	FORM_VIEW: "" +
 		"<Ctrl-j> OR <Down> Select next item\n" +
@@ -109,10 +110,10 @@ func (app *App) printEntries() {
 		db := Database{}
 		entries := db.getEntries(app.date)
 		cols, rows := v.Size()
-		padding := cols/3 - 1
+		padding := cols/2 - 1
 
 		for i, e := range entries {
-			rowText := fmt.Sprintf("%-*s %-*s %*d", padding, e.Date, padding, e.Item, padding, e.Hours)
+			rowText := fmt.Sprintf("%-*s %*d", padding, e.Item, padding, e.Hours)
 
 			if i%2 == 0 {
 				rowText = fmt.Sprintf("\x1b[0;33m%s\x1b[0m", rowText)
@@ -163,6 +164,9 @@ func (app *App) printItemInfo() {
 		}
 		if item.TotalHours != -1 {
 			fmt.Fprintf(v, "Total Hours:    %f\n", item.TotalHours)
+		}
+		if item.URL != "" {
+			fmt.Fprintf(v, "URL:            %s\n", item.URL)
 		}
 
 		return nil

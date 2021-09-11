@@ -40,6 +40,7 @@ type Item struct {
 	Description string
 	Size        string
 	TotalHours  float32
+	URL         string
 	Type        string
 }
 

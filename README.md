@@ -23,7 +23,6 @@ A CLI helper for TimeSheet
 
 ## Todo
 ## Priority 1
-- Restrict list of entries for particular day
 - See info for currently selected item:
     - Total hours logged to date (MUST HAVE FOR CR'S)
 - Have the current category of item displayed at top (make it obvious)
@@ -33,9 +32,7 @@ A CLI helper for TimeSheet
     - Simon: At the moment you can do this by reentering the entry. So to amend CR-1234 you would add another entry for CR-1234 with the correct hours and this will update it. Thoughts on this? I feel like there is probably a better way of doing it
     - Simon: Also deleteing is the same as amending except enter the new hours as 0
 ## Priority 2
-- Switch between days of the week
-- Switch between different weeks
-    - Add indication that user is not on current week
+- Add indication that user is not on current week
 - Total hours logged this week
     - Breakdown of the hours into days 
 - Total hours logged today

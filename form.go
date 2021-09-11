@@ -231,6 +231,7 @@ func (ef *EntryForm) getHours() int {
 }
 
 func (ef *EntryForm) SetDate(date time.Time) {
+	// should make this a constant somewhere
 	newDate := date.Format("02/01/2006")
 	v, _ := ef.app.gui.View(FORM_VIEW)
 	buffer := v.BufferLines()
