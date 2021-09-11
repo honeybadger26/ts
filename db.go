@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 )
 
 const (
@@ -13,16 +14,16 @@ const (
 	SAVED_LOGS_FILE = "data/savedlogs.json"
 )
 
-type ItemType int
+type ItemCategory int
 
 const (
-	All ItemType = iota
+	All ItemCategory = iota
 	CR
 	Admin
 )
 const ITEMTYPE_COUNT = 3
 
-func (it ItemType) String() string {
+func (it ItemCategory) String() string {
 	switch it {
 	case All:
 		return "All"
@@ -50,7 +51,7 @@ type Entry struct {
 
 type Database struct{}
 
-func (db *Database) getItems(it ItemType) []Item {
+func (db *Database) getItems(it ItemCategory) []Item {
 	file, err := os.Open(ITEMS_FILE)
 
 	if err != nil {
@@ -85,7 +86,7 @@ func (db *Database) getItem(name string) *Item {
 }
 
 // get entry for day
-func (db *Database) getEntries() []Entry {
+func (db *Database) getAllEntries() []Entry {
 	var entries []Entry
 	data, err := ioutil.ReadFile(SAVED_LOGS_FILE)
 
@@ -102,8 +103,20 @@ func (db *Database) getEntries() []Entry {
 	return entries
 }
 
-func (db *Database) getTotalHours() int {
-	entries := db.getEntries()
+func (db *Database) getEntries(date time.Time) []Entry {
+	var entries []Entry
+
+	for _, entry := range db.getAllEntries() {
+		if entry.Date == date.Format("02/01/2006") {
+			entries = append(entries, entry)
+		}
+	}
+
+	return entries
+}
+
+func (db *Database) getTotalHours(date time.Time) int {
+	entries := db.getEntries(date)
 	hours := 0
 	for _, entry := range entries {
 		hours += entry.Hours
@@ -117,7 +130,7 @@ func (db *Database) saveEntry(entry Entry) {
 	if _, err := os.Stat(SAVED_LOGS_FILE); os.IsNotExist(err) {
 		os.OpenFile(SAVED_LOGS_FILE, os.O_CREATE|os.O_WRONLY, 0644)
 	} else {
-		entries = db.getEntries()
+		entries = db.getAllEntries()
 	}
 
 	// remove entry if exists
@@ -139,4 +152,13 @@ func (db *Database) saveEntry(entry Entry) {
 
 	writedata, _ := json.MarshalIndent(entries, "", "\t")
 	file.WriteString(string(writedata))
+}
+
+func (db *Database) entryExists(date string, item string) bool {
+	for _, e := range db.getAllEntries() {
+		if e.Date == date && e.Item == item {
+			return true
+		}
+	}
+	return false
 }

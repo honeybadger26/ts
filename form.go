@@ -11,33 +11,80 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-func filterItems(g *gocui.Gui, allItems []Item, query string) []Item {
-	filteredItems := []Item{}
+type EntryForm struct {
+	app *App
 
-	for _, item := range allItems {
-		regexstr := `(?i)` + query
+	// User input
+	category ItemCategory
+	item     string
+	hours    int
+
+	items         []Item
+	filteredItems []Item
+	selectedIndex int
+	entry         Entry
+}
+
+func NewEntryForm(app *App) *EntryForm {
+	ef := &EntryForm{}
+
+	ef.app = app
+	ef.category = All
+	ef.item = ""
+	ef.hours = 0
+
+	ef.items = app.db.getItems(All)
+	ef.filterItems()
+	return ef
+}
+
+func (ef *EntryForm) changeItem(item string) {
+	if item == ef.item {
+		return
+	}
+	ef.item = item
+	ef.filterItems()
+}
+
+func (ef *EntryForm) changeCategory(forward bool) {
+	if forward {
+		ef.category = (ef.category + 1) % ITEMTYPE_COUNT
+	} else {
+		ef.category = (ef.category + ITEMTYPE_COUNT - 1) % ITEMTYPE_COUNT
+	}
+
+	ef.items = ef.app.db.getItems(ef.category)
+	ef.filterItems()
+}
+
+func (ef *EntryForm) filterItems() {
+	ef.filteredItems = []Item{}
+
+	for _, item := range ef.items {
+		regexstr := `(?i)` + ef.item
 		match, err := regexp.MatchString(regexstr, item.Name)
 		if err != nil {
 			// handle error
 		}
 		if match {
-			filteredItems = append(filteredItems, item)
+			ef.filteredItems = append(ef.filteredItems, item)
 		}
 	}
 
-	return filteredItems
-}
-
-func updateItemView(g *gocui.Gui, category ItemType, items []Item, index int) {
-	validIndex := (index >= 0) && (index <= (len(items) - 1))
-	if len(items) != 0 && !validIndex {
-		return
+	if ef.selectedIndex = -1; len(ef.filteredItems) != 0 {
+		ef.selectedIndex = 0
 	}
 
-	printHelp(g, ITEM_VIEW)
+	ef.updateItemView()
+}
 
-	if validIndex {
-		printItemInfo(g, items[index].Name)
+func (ef *EntryForm) updateItemView() {
+	g := ef.app.gui
+
+	if ef.selectedIndex != -1 {
+		ef.app.changeItem(ef.filteredItems[ef.selectedIndex].Name)
+	} else {
+		ef.app.changeItem("")
 	}
 
 	fv, _ := g.View(FORM_VIEW)
@@ -63,11 +110,11 @@ func updateItemView(g *gocui.Gui, category ItemType, items []Item, index int) {
 
 	iv.Clear()
 
-	if len(items) == 0 {
+	if len(ef.filteredItems) == 0 {
 		fmt.Fprintf(iv, "\x1b[0;31mNo results\x1b[0m\n")
 	} else {
-		for i, item := range items {
-			if i == index {
+		for i, item := range ef.filteredItems {
+			if i == ef.selectedIndex {
 				fmt.Fprintf(iv, "\x1b[0;34m> %s\x1b[0m\n", item.Name)
 			} else {
 				fmt.Fprintln(iv, item.Name)
@@ -79,57 +126,50 @@ func updateItemView(g *gocui.Gui, category ItemType, items []Item, index int) {
 		fmt.Fprintln(iv, "")
 	}
 
-	fmt.Fprintf(iv, "%*s", cols, category)
+	fmt.Fprintf(iv, "%*s", cols, ef.category)
 }
 
-func getItem(g *gocui.Gui) string {
-	db := Database{}
-	category := All
-	items := db.getItems(category)
+func (ef *EntryForm) changeSelectedIndex(forward bool) {
+	indexBefore := ef.selectedIndex
 
-	v, _ := g.View(FORM_VIEW)
+	if forward && (indexBefore < len(ef.filteredItems)-1) {
+		ef.selectedIndex++
+	} else if !forward && (indexBefore > 0) {
+		ef.selectedIndex--
+	}
+
+	if ef.selectedIndex != indexBefore {
+		ef.updateItemView()
+	}
+}
+
+func (ef *EntryForm) getItem() {
+	done := make(chan bool)
+
+	v, _ := ef.app.gui.View(FORM_VIEW)
 	buffer := v.BufferLines()
 	cX := len(buffer[len(buffer)-1])
 	cY := len(buffer) - 1
+
 	v.SetCursor(cX, cY)
-
-	item := make(chan string)
-
-	// put in function
-	selectedIndex := -1
-	filteredItems := filterItems(g, items, "")
-	if len(filteredItems) != 0 {
-		selectedIndex = 0
-	}
-	updateItemView(g, category, filteredItems, selectedIndex)
+	ef.updateItemView()
 
 	v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-		buf := v.BufferLines()
-		line := buf[len(buf)-1]
-		oldInput := strings.TrimSpace(line[cX:])
-
 		switch {
 		case key == gocui.KeyArrowDown || key == gocui.KeyCtrlJ:
-			if selectedIndex < len(filteredItems)-1 {
-				selectedIndex++
-			}
-			updateItemView(g, category, filteredItems, selectedIndex)
+			ef.changeSelectedIndex(true)
 			return
 		case key == gocui.KeyArrowUp || key == gocui.KeyCtrlK:
-			if selectedIndex > 0 {
-				selectedIndex--
-			}
-			updateItemView(g, category, filteredItems, selectedIndex)
+			ef.changeSelectedIndex(false)
 			return
 		case key == gocui.KeyEnter:
-			if selectedIndex != -1 {
-				g.DeleteView(ITEM_VIEW)
-				printHelp(g, "")
+			if ef.app.item != "" {
+				ef.app.gui.DeleteView(ITEM_VIEW)
 				v.SetCursor(cX, cY)
-				for range filteredItems[selectedIndex].Name {
+				for range ef.filteredItems[ef.selectedIndex].Name {
 					v.EditDelete(false)
 				}
-				item <- filteredItems[selectedIndex].Name
+				done <- true
 			}
 			return
 		case key == gocui.KeyBackspace || key == gocui.KeyBackspace2 || key == gocui.KeyArrowLeft:
@@ -137,46 +177,32 @@ func getItem(g *gocui.Gui) string {
 				return
 			}
 		case mod == gocui.ModAlt && ch == 'l':
-			category = (category + 1) % ITEMTYPE_COUNT
-			items = db.getItems(category)
-			filteredItems = filterItems(g, items, oldInput)
-			selectedIndex = 0
-			updateItemView(g, category, filteredItems, selectedIndex)
+			ef.changeCategory(true)
 			return
 		case mod == gocui.ModAlt && ch == 'h':
-			category = (category + ITEMTYPE_COUNT - 1) % ITEMTYPE_COUNT
-			items = db.getItems(category)
-			filteredItems = filterItems(g, items, oldInput)
-			selectedIndex = 0
-			updateItemView(g, category, filteredItems, selectedIndex)
+			ef.changeCategory(false)
 			return
 		}
 		gocui.DefaultEditor.Edit(v, key, ch, mod)
 
-		buf = v.BufferLines()
-		line = buf[len(buf)-1]
-		newInput := strings.TrimSpace(line[cX:])
-		if newInput != oldInput {
-			selectedIndex = -1
-			filteredItems = filterItems(g, items, newInput)
-			if len(filteredItems) != 0 {
-				selectedIndex = 0
-			}
-			updateItemView(g, category, filteredItems, selectedIndex)
-		}
+		buf := v.BufferLines()
+		line := buf[len(buf)-1]
+		ef.changeItem(strings.TrimSpace(line[cX:]))
 	})
 
-	return <-item
+	<-done
 }
 
-func getHours(g *gocui.Gui) int {
-	v, _ := g.View(FORM_VIEW)
+func (ef *EntryForm) getHours() int {
+	hours := make(chan int)
+
+	// put in function?
+	v, _ := ef.app.gui.View(FORM_VIEW)
 	buffer := v.BufferLines()
 	cX := len(buffer[len(buffer)-1])
 	cY := len(buffer) - 1
-	v.SetCursor(cX, cY)
 
-	hours := make(chan int)
+	v.SetCursor(cX, cY)
 
 	v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		switch {
@@ -204,37 +230,53 @@ func getHours(g *gocui.Gui) int {
 	return <-hours
 }
 
-func addNewEntry(g *gocui.Gui) {
-	entry := Entry{}
+func (ef *EntryForm) SetDate(date time.Time) {
+	newDate := date.Format("02/01/2006")
+	v, _ := ef.app.gui.View(FORM_VIEW)
+	buffer := v.BufferLines()
+	cX := len(buffer[len(buffer)-1])
+	cY := len(buffer) - 1
 
-	v, _ := g.View(FORM_VIEW)
-	g.SetCurrentView(FORM_VIEW)
+	dateLineEnd := len(buffer[0])
+	v.SetCursor(dateLineEnd, 0)
+	for i := 0; i < dateLineEnd; i++ {
+		v.EditDelete(true)
+	}
+
+	lineStr := "Date: " + newDate
+	runeArr := []rune(lineStr)
+	for _, ch := range runeArr {
+		v.EditWrite(ch)
+	}
+
+	v.SetCursor(cX, cY)
+	ef.entry.Date = newDate
+}
+
+func (ef *EntryForm) GetEntry() Entry {
+	v, _ := ef.app.gui.View(FORM_VIEW)
+	ef.app.gui.SetCurrentView(FORM_VIEW)
 	v.Clear()
 
-	t := time.Now()
-	entry.Date = t.Format("02/01/2006")
-	fmt.Fprintf(v, "Date: %s\n", entry.Date)
+	e := &ef.entry
+
+	date := ef.app.date.Format("02/01/2006")
+	e.Date = date
+	fmt.Fprintf(v, "Date: %s\n", date)
 
 	v.Editable = true
 
 	fmt.Fprintf(v, "Item: ")
-	entry.Item = getItem(g)
-	fmt.Fprintln(v, entry.Item)
+	ef.getItem()
+	item := ef.app.item
+	e.Item = item
+	fmt.Fprintln(v, item)
 
 	fmt.Fprintf(v, "Hours: ")
-	entry.Hours = getHours(g)
-	fmt.Fprintln(v, entry.Hours)
+	hours := ef.getHours()
+	e.Hours = hours
+	fmt.Fprintln(v, hours)
 
 	v.Editable = false
-
-	db := Database{}
-	db.saveEntry(entry)
-
-	var msg string
-	if entry.Hours == 0 {
-		msg = fmt.Sprintf("Removed entry: %s on %s", entry.Item, entry.Date)
-	} else {
-		msg = fmt.Sprintf("Submitted entry: %s for %d hours on %s", entry.Item, entry.Hours, entry.Date)
-	}
-	logger(g, msg)
+	return *e
 }
