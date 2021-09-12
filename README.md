@@ -31,6 +31,7 @@ A CLI helper for TimeSheet
 - Functionality to easily amend any day's logged hours
     - Simon: At the moment you can do this by reentering the entry. So to amend CR-1234 you would add another entry for CR-1234 with the correct hours and this will update it. Thoughts on this? I feel like there is probably a better way of doing it
     - Simon: Also deleteing is the same as amending except enter the new hours as 0
+- Quick change date back to today
 ## Priority 2
 - Add indication that user is not on current week
 - Total hours logged this week
@@ -40,6 +41,7 @@ A CLI helper for TimeSheet
 - Add a favorites category ( & functionality to add / remove favorite items)
     - OR instead of Favorites, maybe a 'Most Recent' category. Idk about you guys, but I tend to rotate between about ~5 items at any one time and this saves the user the effort of setting favorites.
         - Simon: I prefer 'Most Recent' because as you said there is effort in setting favourites
+- Be able to type in date to go to
 ## Priority 3
 - Commands from CLI
     - View todays logs

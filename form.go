@@ -11,6 +11,10 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
+const (
+	DISPLAY_DATE_FORMAT = "Mon 02 / Jan 01 / 2006"
+)
+
 type EntryForm struct {
 	app *App
 
@@ -24,6 +28,11 @@ type EntryForm struct {
 	selectedIndex int
 	entry         Entry
 }
+
+// make a refreshView method. pretty much updateItemView but also:
+// - saves current cursor pos
+// - updates the form view
+// - restore cursor pos
 
 func NewEntryForm(app *App) *EntryForm {
 	ef := &EntryForm{}
@@ -46,13 +55,8 @@ func (ef *EntryForm) changeItem(item string) {
 	ef.filterItems()
 }
 
-func (ef *EntryForm) changeCategory(forward bool) {
-	if forward {
-		ef.category = (ef.category + 1) % ITEMTYPE_COUNT
-	} else {
-		ef.category = (ef.category + ITEMTYPE_COUNT - 1) % ITEMTYPE_COUNT
-	}
-
+func (ef *EntryForm) changeNextCategory() {
+	ef.category = (ef.category + 1) % ITEMTYPE_COUNT
 	ef.items = ef.app.db.getItems(ef.category)
 	ef.filterItems()
 }
@@ -79,14 +83,13 @@ func (ef *EntryForm) filterItems() {
 }
 
 func (ef *EntryForm) updateItemView() {
-	g := ef.app.gui
-
 	if ef.selectedIndex != -1 {
 		ef.app.changeItem(ef.filteredItems[ef.selectedIndex].Name)
 	} else {
 		ef.app.changeItem("")
 	}
 
+	g := ef.app.gui
 	fv, _ := g.View(FORM_VIEW)
 	p := VIEW_PROPS[FORM_VIEW]
 	maxX, maxY := g.Size()
@@ -106,7 +109,6 @@ func (ef *EntryForm) updateItemView() {
 	iv.Wrap = true
 	iv.Editable = VIEW_PROPS[ITEM_VIEW].editable
 	iv.Frame = VIEW_PROPS[ITEM_VIEW].frame
-	cols, rows := iv.Size()
 
 	iv.Clear()
 
@@ -122,10 +124,10 @@ func (ef *EntryForm) updateItemView() {
 		}
 	}
 
+	cols, rows := iv.Size()
 	for len(iv.BufferLines()) < rows {
 		fmt.Fprintln(iv, "")
 	}
-
 	fmt.Fprintf(iv, "%*s", cols, ef.category)
 }
 
@@ -156,10 +158,10 @@ func (ef *EntryForm) getItem() {
 
 	v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		switch {
-		case key == gocui.KeyArrowDown || key == gocui.KeyCtrlJ:
+		case key == gocui.KeyArrowDown:
 			ef.changeSelectedIndex(true)
 			return
-		case key == gocui.KeyArrowUp || key == gocui.KeyCtrlK:
+		case key == gocui.KeyArrowUp:
 			ef.changeSelectedIndex(false)
 			return
 		case key == gocui.KeyEnter:
@@ -176,11 +178,8 @@ func (ef *EntryForm) getItem() {
 			if newCursorX, newCursorY := v.Cursor(); newCursorX == cX && newCursorY == cY {
 				return
 			}
-		case mod == gocui.ModAlt && ch == 'l':
-			ef.changeCategory(true)
-			return
-		case mod == gocui.ModAlt && ch == 'h':
-			ef.changeCategory(false)
+		case key == gocui.KeyTab:
+			ef.changeNextCategory()
 			return
 		}
 		gocui.DefaultEditor.Edit(v, key, ch, mod)
@@ -231,20 +230,31 @@ func (ef *EntryForm) getHours() int {
 }
 
 func (ef *EntryForm) SetDate(date time.Time) {
-	// should make this a constant somewhere
+	// should make the date format a constant somewhere
 	newDate := date.Format("02/01/2006")
 	v, _ := ef.app.gui.View(FORM_VIEW)
 	buffer := v.BufferLines()
 	cX := len(buffer[len(buffer)-1])
 	cY := len(buffer) - 1
 
+	// can use v.Write('\r') to clear line?
 	dateLineEnd := len(buffer[0])
 	v.SetCursor(dateLineEnd, 0)
 	for i := 0; i < dateLineEnd; i++ {
 		v.EditDelete(true)
 	}
 
-	lineStr := "Date: " + newDate
+	// this has problems when trying to add colors. fix this (use refreshView solution)
+	diffWeekMsg := ""
+	yearNow, weekNow := time.Now().ISOWeek()
+	y, w := date.ISOWeek()
+	if w < weekNow || y < yearNow {
+		diffWeekMsg = " >>> PAST WEEK <<<"
+	} else if w > weekNow || y > yearNow {
+		diffWeekMsg = " >>> FUTURE WEEK <<<"
+	}
+
+	lineStr := "Date: " + date.Format(DISPLAY_DATE_FORMAT) + diffWeekMsg
 	runeArr := []rune(lineStr)
 	for _, ch := range runeArr {
 		v.EditWrite(ch)
@@ -261,9 +271,9 @@ func (ef *EntryForm) GetEntry() Entry {
 
 	e := &ef.entry
 
-	date := ef.app.date.Format("02/01/2006")
-	e.Date = date
-	fmt.Fprintf(v, "Date: %s\n", date)
+	date := ef.app.date
+	e.Date = date.Format("02/01/2006")
+	fmt.Fprintf(v, "Date: %s\n", date.Format(DISPLAY_DATE_FORMAT))
 
 	v.Editable = true
 

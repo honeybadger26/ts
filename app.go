@@ -11,14 +11,16 @@ import (
 // should move this to a constants file with views.go
 var HELP_TEXT = map[string]string{
 	FORM_VIEW: "" +
-		"<Ctrl-j> OR <Down> Select next item\n" +
-		"<Ctrl-k> OR <Up> Select previous item\n" +
-		"<Enter> Confirm selected item\n" +
-		"<Alt-l> Next category\n" +
-		"<Alt-h> Previous category",
+		"<Up> Select previous item\n" +
+		"<Down> Select next item\n" +
+		"<Tab> Next category\n" +
+		"<Enter> Confirm selected item",
 	"APP": "" +
-		"<Ctrl-d> Next day\n" +
-		"<Ctrl-u> Previous day\n" +
+		"<Alt-Up> Scroll up entries (TODO) \n" +
+		"<Alt-Down> Scroll down entries (TODO) \n" +
+		"<Alt-Left> Previous day\n" +
+		"<Alt-Right> Next day\n" +
+		"<Ctrl-t> Go to today\n" +
 		"<Ctrl-c> Quit",
 }
 
@@ -59,13 +61,18 @@ func (app *App) setupKeyBindings() {
 		return gocui.ErrQuit
 	})
 
-	app.gui.SetKeybinding("", gocui.KeyCtrlD, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+	app.gui.SetKeybinding("", gocui.KeyArrowLeft, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
+		app.changeDate(app.date.AddDate(0, 0, -1))
+		return nil
+	})
+
+	app.gui.SetKeybinding("", gocui.KeyArrowRight, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
 		app.changeDate(app.date.AddDate(0, 0, 1))
 		return nil
 	})
 
-	app.gui.SetKeybinding("", gocui.KeyCtrlU, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.changeDate(app.date.AddDate(0, 0, -1))
+	app.gui.SetKeybinding("", gocui.KeyCtrlT, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		app.changeDate(time.Now())
 		return nil
 	})
 }
