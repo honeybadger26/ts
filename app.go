@@ -114,8 +114,7 @@ func (app *App) printEntries() {
 
 		v.Clear()
 
-		db := Database{}
-		entries := db.getEntries(app.date)
+		entries := app.db.getEntries(app.date)
 		cols, rows := v.Size()
 		padding := cols/2 - 1
 
@@ -134,7 +133,7 @@ func (app *App) printEntries() {
 		}
 
 		pretext := "Total"
-		totalHours := db.getTotalHours(app.date)
+		totalHours := app.db.getTotalHours(app.date)
 		fmt.Fprintf(v, "\x1b[0;32m%s %*d\x1b[0m", pretext, cols-len(pretext)-2, totalHours)
 
 		return nil
@@ -148,8 +147,7 @@ func (app *App) changeDate(date time.Time) {
 }
 
 func (app *App) printItemInfo() {
-	db := Database{}
-	item := db.getItem(app.item)
+	item := app.db.getItem(app.item)
 
 	app.gui.Update(func(g *gocui.Gui) error {
 		v, err := g.View(INFO_VIEW)

@@ -52,6 +52,7 @@ type Entry struct {
 
 type Database struct{}
 
+// Get all items that belong to a category
 func (db *Database) getItems(it ItemCategory) []Item {
 	file, err := os.Open(ITEMS_FILE)
 
@@ -76,6 +77,7 @@ func (db *Database) getItems(it ItemCategory) []Item {
 	return items
 }
 
+// Get item by name
 func (db *Database) getItem(name string) *Item {
 	items := db.getItems(All)
 	for _, item := range items {
@@ -86,7 +88,7 @@ func (db *Database) getItem(name string) *Item {
 	return nil
 }
 
-// get entry for day
+// Get all entries that exist
 func (db *Database) getAllEntries() []Entry {
 	var entries []Entry
 	data, err := ioutil.ReadFile(SAVED_LOGS_FILE)
@@ -104,6 +106,7 @@ func (db *Database) getAllEntries() []Entry {
 	return entries
 }
 
+// Get entries by date
 func (db *Database) getEntries(date time.Time) []Entry {
 	var entries []Entry
 
@@ -116,6 +119,7 @@ func (db *Database) getEntries(date time.Time) []Entry {
 	return entries
 }
 
+// Get total hours logged for a given day
 func (db *Database) getTotalHours(date time.Time) int {
 	entries := db.getEntries(date)
 	hours := 0
@@ -155,6 +159,7 @@ func (db *Database) saveEntry(entry Entry) {
 	file.WriteString(string(writedata))
 }
 
+// Check if entry with same date and for same item exists
 func (db *Database) entryExists(date string, item string) bool {
 	for _, e := range db.getAllEntries() {
 		if e.Date == date && e.Item == item {

@@ -249,9 +249,9 @@ func (ef *EntryForm) SetDate(date time.Time) {
 	yearNow, weekNow := time.Now().ISOWeek()
 	y, w := date.ISOWeek()
 	if w < weekNow || y < yearNow {
-		diffWeekMsg = " >>> PAST WEEK <<<"
+		diffWeekMsg = "   >>> PAST WEEK <<<"
 	} else if w > weekNow || y > yearNow {
-		diffWeekMsg = " >>> FUTURE WEEK <<<"
+		diffWeekMsg = "   >>> FUTURE WEEK <<<"
 	}
 
 	lineStr := "Date: " + date.Format(DISPLAY_DATE_FORMAT) + diffWeekMsg
