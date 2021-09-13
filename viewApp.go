@@ -21,6 +21,7 @@ func NewViewApp(g *gocui.Gui) *ViewApp {
 	va.gui = g
 	va.db = &Database{}
 	va.setDate(time.Now())
+	va.setupKeyBindings()
 
 	return va
 }
