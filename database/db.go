@@ -34,7 +34,7 @@ func (it ItemCategory) String() string {
 	return ""
 }
 
-func (it ItemCategory) GetNextCategory() ItemCategory {
+func (it ItemCategory) GetNext() ItemCategory {
 	categories := []ItemCategory{
 		ICAll,
 		ICCR,

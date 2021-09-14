@@ -61,7 +61,7 @@ func (ef *EntryForm) changeItem(item string) {
 }
 
 func (ef *EntryForm) changeNextCategory() {
-	ef.category = ef.category.GetNextCategory()
+	ef.category = ef.category.GetNext()
 	ef.items = ef.app.db.GetItems(ef.category)
 	ef.filterItems()
 }
