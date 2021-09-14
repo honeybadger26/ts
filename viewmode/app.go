@@ -1,4 +1,4 @@
-package main
+package viewmode
 
 import (
 	"fmt"
@@ -6,11 +6,18 @@ import (
 	"time"
 
 	"github.com/jroimartin/gocui"
+
+	"ts/database"
+)
+
+// repeated code - form.go
+const (
+	DISPLAY_DATE_FORMAT = "Mon 02 / Jan 01 / 2006"
 )
 
 type ViewApp struct {
 	gui       *gocui.Gui
-	db        *Database
+	db        *database.Database
 	startDate time.Time
 	endDate   time.Time
 }
@@ -19,7 +26,7 @@ func NewViewApp(g *gocui.Gui) *ViewApp {
 	va := &ViewApp{}
 
 	va.gui = g
-	va.db = &Database{}
+	va.db = &database.Database{}
 	va.setDate(time.Now())
 	va.setupKeyBindings()
 
@@ -104,7 +111,7 @@ func (va *ViewApp) setupViews() {
 		v.Frame = true
 
 		// repeated code (app.go - printEntries)
-		entries := va.db.getEntries(d)
+		entries := va.db.GetEntries(d)
 		cols, _ := v.Size()
 		padding := cols / 2
 

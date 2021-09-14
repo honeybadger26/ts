@@ -1,9 +1,10 @@
-package main
+package editmode
 
 import (
 	"fmt"
 	"log"
 	"time"
+	"ts/database"
 
 	"github.com/jroimartin/gocui"
 )
@@ -26,7 +27,7 @@ var HELP_TEXT = map[string]string{
 
 type App struct {
 	gui *gocui.Gui
-	db  *Database
+	db  *database.Database
 	ef  *EntryForm
 
 	date time.Time
@@ -36,7 +37,7 @@ type App struct {
 func NewApp(g *gocui.Gui) *App {
 	app := &App{}
 	app.gui = g
-	app.db = &Database{}
+	app.db = &database.Database{}
 
 	app.setupKeyBindings()
 	app.setupViews()
@@ -114,7 +115,7 @@ func (app *App) printEntries() {
 
 		v.Clear()
 
-		entries := app.db.getEntries(app.date)
+		entries := app.db.GetEntries(app.date)
 		cols, rows := v.Size()
 		padding := cols/2 - 1
 
@@ -133,7 +134,7 @@ func (app *App) printEntries() {
 		}
 
 		pretext := "Total"
-		totalHours := app.db.getTotalHours(app.date)
+		totalHours := app.db.GetTotalHours(app.date)
 		fmt.Fprintf(v, "\x1b[0;32m%s %*d\x1b[0m", pretext, cols-len(pretext)-2, totalHours)
 
 		return nil
@@ -147,7 +148,7 @@ func (app *App) changeDate(date time.Time) {
 }
 
 func (app *App) printItemInfo() {
-	item := app.db.getItem(app.item)
+	item := app.db.GetItem(app.item)
 
 	app.gui.Update(func(g *gocui.Gui) error {
 		v, err := g.View(INFO_VIEW)
@@ -215,7 +216,7 @@ func (app *App) addNewEntry() {
 
 	entryStr := fmt.Sprintf("%s - %s - %d hours", e.Date, e.Item, e.Hours)
 	var msg string
-	if app.db.entryExists(e.Date, e.Item) {
+	if app.db.EntryExists(e.Date, e.Item) {
 		if e.Hours == 0 {
 			msg = fmt.Sprintf("Removing entry: ")
 		} else {
@@ -225,7 +226,7 @@ func (app *App) addNewEntry() {
 		msg = fmt.Sprintf("Sumbitting new entry: ")
 	}
 
-	app.db.saveEntry(e)
+	app.db.SaveEntry(e)
 	app.log(msg + entryStr)
 	app.printEntries()
 }

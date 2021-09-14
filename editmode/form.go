@@ -1,4 +1,4 @@
-package main
+package editmode
 
 import (
 	"fmt"
@@ -9,6 +9,8 @@ import (
 	"unicode"
 
 	"github.com/jroimartin/gocui"
+
+	"ts/database"
 )
 
 const (
@@ -19,32 +21,35 @@ type EntryForm struct {
 	app *App
 
 	// User input
-	category ItemCategory
+	category database.ItemCategory
 	item     string
 	hours    int
 
-	items         []Item
-	filteredItems []Item
+	items         []database.Item
+	filteredItems []database.Item
 	selectedIndex int
-	entry         Entry
+	entry         database.Entry
 }
 
 // make a refreshView method. pretty much updateItemView but also:
 // - saves current cursor pos
 // - updates the form view
 // - restore cursor pos
+// OR
+// - redraws entire view (including item view)
+// - sets cursor to end of buffer
 
-func NewEntryForm(app *App) *EntryForm {
-	ef := &EntryForm{}
+func NewEntryForm(app *App) (ef *EntryForm) {
+	ef = &EntryForm{}
 
 	ef.app = app
-	ef.category = All
+	ef.category = database.ICAll
 	ef.item = ""
 	ef.hours = 0
 
-	ef.items = app.db.getItems(All)
+	ef.items = app.db.GetItems(ef.category)
 	ef.filterItems()
-	return ef
+	return
 }
 
 func (ef *EntryForm) changeItem(item string) {
@@ -56,13 +61,13 @@ func (ef *EntryForm) changeItem(item string) {
 }
 
 func (ef *EntryForm) changeNextCategory() {
-	ef.category = (ef.category + 1) % ITEMTYPE_COUNT
-	ef.items = ef.app.db.getItems(ef.category)
+	ef.category = ef.category.GetNextCategory()
+	ef.items = ef.app.db.GetItems(ef.category)
 	ef.filterItems()
 }
 
 func (ef *EntryForm) filterItems() {
-	ef.filteredItems = []Item{}
+	ef.filteredItems = []database.Item{}
 
 	for _, item := range ef.items {
 		regexstr := `(?i)` + ef.item
@@ -264,7 +269,7 @@ func (ef *EntryForm) SetDate(date time.Time) {
 	ef.entry.Date = newDate
 }
 
-func (ef *EntryForm) GetEntry() Entry {
+func (ef *EntryForm) GetEntry() database.Entry {
 	v, _ := ef.app.gui.View(FORM_VIEW)
 	ef.app.gui.SetCurrentView(FORM_VIEW)
 	v.Clear()

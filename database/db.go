@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"encoding/json"
@@ -17,22 +17,30 @@ const (
 type ItemCategory int
 
 const (
-	All ItemCategory = iota
-	CR
-	Admin
+	ICAll ItemCategory = iota
+	ICCR
+	ICAdmin
 )
-const ITEMTYPE_COUNT = 3
 
 func (it ItemCategory) String() string {
 	switch it {
-	case All:
+	case ICAll:
 		return "All"
-	case CR:
+	case ICCR:
 		return "CR"
-	case Admin:
+	case ICAdmin:
 		return "Admin"
 	}
 	return ""
+}
+
+func (it ItemCategory) GetNextCategory() ItemCategory {
+	categories := []ItemCategory{
+		ICAll,
+		ICCR,
+		ICAdmin,
+	}
+	return categories[(int(it+1) % len(categories))]
 }
 
 type Item struct {
@@ -53,7 +61,7 @@ type Entry struct {
 type Database struct{}
 
 // Get all items that belong to a category
-func (db *Database) getItems(it ItemCategory) []Item {
+func (db *Database) GetItems(it ItemCategory) []Item {
 	file, err := os.Open(ITEMS_FILE)
 
 	if err != nil {
@@ -69,7 +77,7 @@ func (db *Database) getItems(it ItemCategory) []Item {
 
 	for decoder.More() {
 		decoder.Decode(&item)
-		if it == All || item.Type == fmt.Sprint(it) {
+		if it == ICAll || item.Type == fmt.Sprint(it) {
 			items = append(items, item)
 		}
 	}
@@ -78,8 +86,8 @@ func (db *Database) getItems(it ItemCategory) []Item {
 }
 
 // Get item by name
-func (db *Database) getItem(name string) *Item {
-	items := db.getItems(All)
+func (db *Database) GetItem(name string) *Item {
+	items := db.GetItems(ICAll)
 	for _, item := range items {
 		if item.Name == name {
 			return &item
@@ -107,7 +115,7 @@ func (db *Database) getAllEntries() []Entry {
 }
 
 // Get entries by date
-func (db *Database) getEntries(date time.Time) []Entry {
+func (db *Database) GetEntries(date time.Time) []Entry {
 	var entries []Entry
 
 	for _, entry := range db.getAllEntries() {
@@ -120,8 +128,8 @@ func (db *Database) getEntries(date time.Time) []Entry {
 }
 
 // Get total hours logged for a given day
-func (db *Database) getTotalHours(date time.Time) int {
-	entries := db.getEntries(date)
+func (db *Database) GetTotalHours(date time.Time) int {
+	entries := db.GetEntries(date)
 	hours := 0
 	for _, entry := range entries {
 		hours += entry.Hours
@@ -129,7 +137,7 @@ func (db *Database) getTotalHours(date time.Time) int {
 	return hours
 }
 
-func (db *Database) saveEntry(entry Entry) {
+func (db *Database) SaveEntry(entry Entry) {
 	var entries []Entry
 
 	if _, err := os.Stat(SAVED_LOGS_FILE); os.IsNotExist(err) {
@@ -160,7 +168,7 @@ func (db *Database) saveEntry(entry Entry) {
 }
 
 // Check if entry with same date and for same item exists
-func (db *Database) entryExists(date string, item string) bool {
+func (db *Database) EntryExists(date string, item string) bool {
 	for _, e := range db.getAllEntries() {
 		if e.Date == date && e.Item == item {
 			return true

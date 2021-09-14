@@ -5,6 +5,9 @@ import (
 	"os"
 
 	"github.com/jroimartin/gocui"
+
+	"ts/editmode"
+	"ts/viewmode"
 )
 
 func main() {
@@ -18,14 +21,12 @@ func main() {
 	g.Mouse = false
 
 	if len(os.Args) == 1 {
-		NewApp(g)
+		editmode.NewApp(g)
 	} else if os.Args[1] == "v" {
-		NewViewApp(g)
+		viewmode.NewViewApp(g)
 	}
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		// 		log.Println("big ol errrrrr")
-		// 		os.Exit(0)
 		log.Panicln(err)
 	}
 }

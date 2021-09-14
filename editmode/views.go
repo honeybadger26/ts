@@ -1,4 +1,4 @@
-package main
+package editmode
 
 const (
 	FORM_VIEW    = "form"
