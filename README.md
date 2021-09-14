@@ -57,6 +57,7 @@ A CLI helper for TimeSheet
     - No error messages for entering greater than 24 hours on current Timesheet. It will simply input 24 if you put >24 
     - CR size 'Please talk to team leader' messages: 80 for small, 200(?) for medium, ??? for large
 - Be able to type in date to go to
+- Undo shortcut (preferably using ctrl-z)
 ## Priority 3
 - Add indication that user is not on current week .Done but need to highlight the text, this is actually a bigger change than expected :/
     - `Andre:` Seems like this one doesn't need to be changed too much from what it already is based on Alison's response
@@ -72,3 +73,6 @@ A CLI helper for TimeSheet
     5. Make the user confirm their entry (date + all items /w hours) & option to 'Save' & option to 'Back' / 'Amend' (Take back to Step 4, retain the data initially entered etc.)
 - Be able to sign out of whiteboard
 - Notes for a CR
+- Ability to hide/unhide UI tooltips
+- Allow program to take parameters (which in turn allows for desktop shortcuts)
+- Add 'open in JIRA' shortcut
