@@ -112,11 +112,11 @@ func (va *ViewApp) setupViews() {
 
 		// repeated code (app.go - printEntries)
 		entries := va.db.GetEntries(d)
-		cols, _ := v.Size()
-		padding := cols / 2
+		cols, rows := v.Size()
 
 		for i, e := range entries {
-			rowText := fmt.Sprintf("%-*s%*d", padding, e.Item, padding, e.Hours)
+			hoursStr := fmt.Sprintf("%d", e.Hours)
+			rowText := fmt.Sprintf("%-*s%s", cols-len(hoursStr)-1, e.Item, hoursStr)
 
 			if i%2 == 0 {
 				rowText = fmt.Sprintf("\x1b[0;33m%s\x1b[0m", rowText)
@@ -124,5 +124,15 @@ func (va *ViewApp) setupViews() {
 
 			fmt.Fprintln(v, rowText)
 		}
+
+		// repeated code (app.go - printEntries)
+		for len(v.BufferLines()) < rows {
+			fmt.Fprintln(v, "")
+		}
+
+		pretext := "Total"
+		totalHours := va.db.GetTotalHours(d)
+		hoursStr := fmt.Sprintf("%d", totalHours)
+		fmt.Fprintf(v, "\x1b[0;32m%-*s%s\x1b[0m", cols-len(hoursStr)-1, pretext, hoursStr)
 	}
 }

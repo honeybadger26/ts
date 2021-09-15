@@ -43,7 +43,7 @@ func NewEntryForm(app *App) (ef *EntryForm) {
 	ef = &EntryForm{}
 
 	ef.app = app
-	ef.category = database.ICAll
+	ef.category = database.ICRecent
 	ef.item = ""
 	ef.hours = 0
 

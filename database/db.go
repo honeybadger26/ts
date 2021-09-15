@@ -10,20 +10,24 @@ import (
 )
 
 const (
-	ITEMS_FILE      = "data/items.json"
-	SAVED_LOGS_FILE = "data/savedlogs.json"
+	ITEMS_FILE         = "data/items.json"
+	SAVED_LOGS_FILE    = "data/savedlogs.json"
+	RECENT_ITEMS_LIMIT = 5
 )
 
 type ItemCategory int
 
 const (
-	ICAll ItemCategory = iota
+	ICRecent ItemCategory = iota
+	ICAll
 	ICCR
 	ICAdmin
 )
 
 func (it ItemCategory) String() string {
 	switch it {
+	case ICRecent:
+		return "Recent"
 	case ICAll:
 		return "All"
 	case ICCR:
@@ -36,6 +40,7 @@ func (it ItemCategory) String() string {
 
 func (it ItemCategory) GetNext() ItemCategory {
 	categories := []ItemCategory{
+		ICRecent,
 		ICAll,
 		ICCR,
 		ICAdmin,
@@ -60,8 +65,7 @@ type Entry struct {
 
 type Database struct{}
 
-// Get all items that belong to a category
-func (db *Database) GetItems(it ItemCategory) []Item {
+func (db *Database) GetAllItems() []Item {
 	file, err := os.Open(ITEMS_FILE)
 
 	if err != nil {
@@ -77,6 +81,46 @@ func (db *Database) GetItems(it ItemCategory) []Item {
 
 	for decoder.More() {
 		decoder.Decode(&item)
+		items = append(items, item)
+	}
+
+	return items
+}
+
+func inArray(items []Item, item *Item) (found bool) {
+	found = false
+	for _, i := range items {
+		if i == *item {
+			found = true
+			return
+		}
+	}
+	return
+}
+
+// Get all items that belong to a category
+func (db *Database) GetItems(it ItemCategory) (items []Item) {
+	if it == ICRecent {
+		entries := db.getAllEntries()
+
+		for i := len(entries) - 1; i > 0; i-- {
+			item := db.GetItem(entries[i].Item)
+
+			if !inArray(items, item) {
+				items = append(items, *item) // this is bad design :/
+			}
+
+			if len(items) == RECENT_ITEMS_LIMIT {
+				return items
+			}
+		}
+
+		return items
+	}
+
+	allItems := db.GetAllItems()
+
+	for _, item := range allItems {
 		if it == ICAll || item.Type == fmt.Sprint(it) {
 			items = append(items, item)
 		}

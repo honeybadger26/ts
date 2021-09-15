@@ -40,7 +40,7 @@ A CLI helper for TimeSheet
 - Option to do automatic full-day entry for a date range (FOR Annual Leave, Personal Leave, Public Holidays)
 ## Priority 2
 - View Mode
-    - Total hours logged for a each day
+    - Quick switch between view and edit mode (like with a keyboard shortcut)
     - Total hours logged for the week
     - Help text for controls
     - Month view?
@@ -51,8 +51,6 @@ A CLI helper for TimeSheet
     - Total hours logged today
         - Breakdown of the hours into items
 - Add a favorites category ( & functionality to add / remove favorite items)
-    - OR instead of Favorites, maybe a 'Most Recent' category. Idk about you guys, but I tend to rotate between about ~5 items at any one time and this saves the user the effort of setting favorites.
-        - `Simon:` I prefer 'Most Recent' because as you said there is effort in setting favourites
 - Error/ warning messages
     - No error messages for entering greater than 24 hours on current Timesheet. It will simply input 24 if you put >24 
     - CR size 'Please talk to team leader' messages: 80 for small, 200(?) for medium, ??? for large
