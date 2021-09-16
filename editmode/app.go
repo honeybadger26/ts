@@ -279,22 +279,24 @@ func (app *App) printHelp(view string) {
 
 func (app *App) addNewEntry() {
 	app.ef = NewEntryForm(app)
-	e := app.ef.GetEntry()
+	eSlice := app.ef.GetEntries()
 
-	entryStr := fmt.Sprintf("%s - %s - %d hours", e.Date, e.Item, e.Hours)
-	var msg string
-	if app.db.EntryExists(e.Date, e.Item) {
-		if e.Hours == 0 {
-			msg = fmt.Sprintf("Removing entry: ")
+	for _, e := range eSlice {
+		entryStr := fmt.Sprintf("%s - %s - %d hours", e.Date, e.Item, e.Hours)
+		var msg string
+		if app.db.EntryExists(e.Date, e.Item) {
+			if e.Hours == 0 {
+				msg = fmt.Sprintf("Removing entry: ")
+			} else {
+				msg = fmt.Sprintf("Updating entry: ")
+			}
 		} else {
-			msg = fmt.Sprintf("Updating entry: ")
+			msg = fmt.Sprintf("Sumbitting new entry: ")
 		}
-	} else {
-		msg = fmt.Sprintf("Sumbitting new entry: ")
-	}
 
-	app.db.SaveEntry(e)
-	app.log(msg + entryStr)
+		app.db.SaveEntry(e)
+		app.log(msg + entryStr)
+	}
 	app.printEntries()
 }
 

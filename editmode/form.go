@@ -338,18 +338,18 @@ func (ef *EntryForm) SetDate(date time.Time) {
 }
 
 // AMS - Refactor so that can be used for date ranges.
-func (ef *EntryForm) GetEntry() database.Entry {
+func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 	v, _ := ef.app.gui.View(FORM_VIEW)
 	ef.app.gui.SetCurrentView(FORM_VIEW)
 	v.Clear()
 
-	var e database.Entry
-
+	// Set the date of the form based on the app, then display the date in User Friendly format
 	ef.date = ef.app.date
 	fmt.Fprintf(v, "Date: %s\n", ef.date.Format(DISPLAY_DATE_FORMAT))
 
 	v.Editable = true
 
+	// Get user input for item selection
 	fmt.Fprintf(v, "Item: ")
 	ef.getItem()
 	
@@ -368,14 +368,21 @@ func (ef *EntryForm) GetEntry() database.Entry {
 	}
 	*/
 	
+	// Get user input for hours
 	fmt.Fprintf(v, "Hours: ")
 	ef.hours = ef.getHours()
 
 	v.Editable = false
 
-	e.Date = ef.date.Format(DATE_FORMAT)
-	e.Item = ef.item
-	e.Hours = ef.hours
+	// Preparing entry(s) based on user input
+	var entry database.Entry
 
-	return e
+	entry.Date = ef.date.Format(DATE_FORMAT)
+	entry.Item = ef.item
+	entry.Hours = ef.hours
+
+	entrySlice = append(entrySlice, entry)
+	entrySlice = append(entrySlice, entry)
+
+	return entrySlice
 }
