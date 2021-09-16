@@ -43,15 +43,13 @@ A CLI helper for TimeSheet
     - `Simon:` Also deleteing is the same as amending except enter the new hours as 0
 - View Mode
     - Quick switch between view and edit mode (like with a keyboard shortcut) [TO DO]
-    - Help text for controls
-    - Month view?
+    - Help text for controls [TO DO]
+    - Month view? [GOOD TO HAVE]
     - Type in date to go to [TO DO]
     - `Simon:` I believe the below are also part of the view mode?
     - Total hours logged this week [TO DO]
-        - Breakdown of the hours into days 
+        - Breakdown of the hours into days
         - Warning message, if not reached 40 hrs
-    - Total hours logged today [DONE]
-        - Breakdown of the hours into items
 - Be able to type in date to go to [TO DO]
 - Undo shortcut (preferably using ctrl-z)
 - Notes for a CR [GOOD TO HAVE, MUST HAVE LATER]
