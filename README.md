@@ -23,7 +23,7 @@ A CLI helper for TimeSheet
 - For view mode: `go run . v`
 
 ## Presentation Notes
-- Any above items that we want to have but didn't have time, add them to a 
+- Any above items that we want to have but didn't have time, add them to a 'road map' to show our plans for features
 
 ## Todo
 ## Priority 1
