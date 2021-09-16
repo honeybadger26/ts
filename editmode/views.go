@@ -1,13 +1,13 @@
 package editmode
 
 const (
-	FORM_VIEW    = "form"
-	ITEM_VIEW    = "form.item"
-	HOURS_VIEW   = "form.hours"
-	HELP_VIEW    = "help"
-	ENTRIES_VIEW = "entries"
-	INFO_VIEW    = "info"
-	LOGGER_VIEW  = "logger"
+	FORM_VIEW    = "em_form"
+	ITEM_VIEW    = "em_form.item"
+	HOURS_VIEW   = "em_form.hours"
+	HELP_VIEW    = "em_help"
+	ENTRIES_VIEW = "em_entries"
+	INFO_VIEW    = "em_info"
+	LOGGER_VIEW  = "em_logger"
 )
 
 var MAIN_VIEWS = []string{

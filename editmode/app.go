@@ -5,36 +5,36 @@ import (
 	"log"
 	"time"
 	"ts/database"
+	"ts/viewmode"
 
 	"github.com/jroimartin/gocui"
 )
 
 // should move this to a constants file with views.go
-var HELP_TEXT = map[string]string{
-	FORM_VIEW: "" +
+const (
+	HELP_TEXT = "" +
 		"<Up> Select previous item\n" +
 		"<Down> Select next item\n" +
 		"<Tab> Next category\n" +
-		"<Enter> Confirm selected item",
-	"APP": "" +
-		"<Alt-Up> Scroll up entries (TODO) \n" +
-		"<Alt-Down> Scroll down entries (TODO) \n" +
+		"<Enter> Confirm selected item\n" +
 		"<Alt-Left> Previous day\n" +
 		"<Alt-Right> Next day\n" +
 		"<Ctrl-t> Go to today\n" +
-		"<Ctrl-c> Quit",
-}
+		"<Ctrl-w> Go to view mode\n" +
+		"<Ctrl-c> Quit"
+)
 
 type App struct {
 	gui *gocui.Gui
 	db  *database.Database
 	ef  *EntryForm
+	va  *viewmode.ViewApp
 
 	date time.Time
 	item string
 }
 
-func NewApp(g *gocui.Gui) *App {
+func NewEditApp(g *gocui.Gui) *App {
 	app := &App{}
 	app.gui = g
 	app.db = &database.Database{}
@@ -58,22 +58,29 @@ func NewApp(g *gocui.Gui) *App {
 }
 
 func (app *App) setupKeyBindings() {
-	app.gui.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		return gocui.ErrQuit
-	})
-
-	app.gui.SetKeybinding("", gocui.KeyArrowLeft, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyArrowLeft, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
 		app.changeDate(app.date.AddDate(0, 0, -1))
 		return nil
 	})
 
-	app.gui.SetKeybinding("", gocui.KeyArrowRight, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyArrowRight, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
 		app.changeDate(app.date.AddDate(0, 0, 1))
 		return nil
 	})
 
-	app.gui.SetKeybinding("", gocui.KeyCtrlT, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlT, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		app.changeDate(time.Now())
+		return nil
+	})
+
+	app.gui.SetKeybinding("", gocui.KeyCtrlW, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		if app.va == nil {
+			app.va = viewmode.NewViewApp(g, false)
+		} else {
+			app.va.Destroy()
+			app.va = nil
+			g.SetCurrentView(FORM_VIEW)
+		}
 		return nil
 	})
 }
@@ -193,12 +200,7 @@ func (app *App) printHelp(view string) {
 		}
 
 		v.Clear()
-
-		if helpText, ok := HELP_TEXT[view]; ok {
-			fmt.Fprintln(v, helpText)
-		}
-
-		fmt.Fprintf(v, HELP_TEXT["APP"])
+		fmt.Fprintf(v, HELP_TEXT)
 
 		_, rows := v.Size()
 		for len(v.BufferLines()) < rows {
