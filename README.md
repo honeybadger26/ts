@@ -29,7 +29,6 @@ A CLI helper for TimeSheet
 - Be able to type in date to go to [TO DO]
 - Undo shortcut (preferably using ctrl-z)
 - Notes for a CR [GOOD TO HAVE, MUST HAVE LATER]
-- Add 'open in JIRA' shortcut [MUST HAVE LATER]
 - Make 'Sign out of Whiteboard' work with actual whiteboard
 
 ## Priority 3

@@ -3,6 +3,7 @@ package editmode
 import (
 	"fmt"
 	"log"
+	"os/exec"
 	"time"
 	"ts/database"
 	"ts/viewmode"
@@ -21,10 +22,10 @@ const (
 		"<Enter> Confirm selected item\n" +
 		"<Alt-Left> Previous day\n" +
 		"<Alt-Right> Next day\n" +
-		"<Ctrl-t> Go to today\n" +
-		"<Ctrl-w> Go to view mode\n" +
-		"<Ctrl-x> Quit and sign out of Whiteboard\n" +
-		"<Ctrl-c> Quit"
+		"<Ctrl-T> Go to today\n" +
+		"<Ctrl-W> Go to weekly view\n" +
+		"<Ctrl-X> Quit and sign out of Whiteboard\n" +
+		"<Ctrl-C> Quit"
 )
 
 type App struct {
@@ -90,7 +91,7 @@ func (app *App) setupKeyBindings() {
 		return nil
 	})
 
-	app.gui.SetKeybinding("", gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		app.showHelpText = !app.showHelpText
 		viewHelp := VIEW_PROPS[HELP_VIEW]
 		viewForm := VIEW_PROPS[FORM_VIEW]
@@ -98,6 +99,7 @@ func (app *App) setupKeyBindings() {
 			viewHelp.y0 = 0.5
 			viewForm.y1 = 0.5
 		} else {
+			app.log("Help section hidden. Press F1 to unhide.")
 			viewHelp.y0 = 1.0
 			viewForm.y1 = 1.0
 		}
@@ -105,6 +107,16 @@ func (app *App) setupKeyBindings() {
 		VIEW_PROPS[FORM_VIEW] = viewForm
 		app.setupViews()
 		app.ef.updateItemView()
+		return nil
+	})
+
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlJ, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		item := app.db.GetItem(app.item)
+		app.log("Opening " + item.URL + " in browser... ")
+		var err = exec.Command("rundll32", "url.dll,FileProtocolHandler", item.URL).Start()
+		if err != nil {
+			log.Fatal(err)
+		}
 		return nil
 	})
 
