@@ -13,7 +13,7 @@ A CLI helper for TimeSheet
 
 ## Todo
 ## Opportunities
-- Null fields for items will read the values from previous item in json. (i.e. item without description in items.json file will show description of previous item from .json file)
+- Null fields for items will read the values from previous item in json. (i.e. item without description in items.json file will show description of previous item from .json file) [FIX IN FUTURE]
 ## Priority 1
 - Rework data structure to match JIRA timesheet data [IN PROGRESS - AMS]
 - See info for currently selected item: [TO DO]
