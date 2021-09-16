@@ -23,6 +23,7 @@ var HELP_TEXT = []string{
 	"<Alt-Right> Next day",
 	"<Ctrl-T> Go to today",
 	"<Ctrl-W> Go to weekly view",
+	"<Ctrl-J> Open URL in browser",
 	"<Ctrl-X> Quit and sign out of Whiteboard",
 	"<Ctrl-C> Quit",
 }

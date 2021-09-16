@@ -12,12 +12,14 @@ A CLI helper for TimeSheet
 
 ## Opportunities
 - Null fields for items will read the values from previous item in json. (i.e. item without description in items.json file will show description of previous item from .json file) [FIX IN FUTURE]
+- Selected category is not saved after submitting entry
 
 ## Priority 1
 - Rework data structure to match JIRA timesheet data [IN PROGRESS - AMS]
 - See info for currently selected item: [TO DO]
     - Total hours logged to date (MUST HAVE FOR CR'S)
 - Option to do automatic full-day entry for a date range (FOR Annual Leave, Personal Leave, Public Holidays) [IN PROGRESS - AMS]
+- Be able to hide weekend in weekly view
 
 ## Priority 2
 - Functionality to easily amend any day's logged hours [DONE - POLISH]
@@ -26,7 +28,6 @@ A CLI helper for TimeSheet
     - Highlight currently selected day and go to this day when switching back to edit mode
     - Month view? [GOOD TO HAVE]
     - Type in date to go to [TO DO]
-    - Be able to hide weekend
 - Be able to type in date to go to [TO DO]
 - Undo shortcut (preferably using ctrl-z)
 - Notes for a CR [GOOD TO HAVE, MUST HAVE LATER]

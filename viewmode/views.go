@@ -21,7 +21,7 @@ type viewProps struct {
 
 var VIEW_PROPS = map[string]viewProps{
 	WEEK_VIEW: {
-		title:    "Week",
+		title:    "",
 		frame:    true,
 		editable: false,
 		x0:       0.0,
@@ -39,7 +39,7 @@ var VIEW_PROPS = map[string]viewProps{
 		y1:       1.0,
 	},
 	INFO_VIEW: {
-		title:    "Info",
+		title:    "",
 		frame:    true,
 		editable: false,
 		x0:       0.5,
