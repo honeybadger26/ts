@@ -8,6 +8,7 @@ const (
 	ENTRIES_VIEW = "em_entries"
 	INFO_VIEW    = "em_info"
 	LOGGER_VIEW  = "em_logger"
+	BLANK_VIEW   = "em_blank"
 )
 
 var MAIN_VIEWS = []string{
@@ -79,5 +80,14 @@ var VIEW_PROPS = map[string]viewProps{
 		y0:       0.666,
 		x1:       1.0,
 		y1:       1.0,
+	},
+	BLANK_VIEW: {
+		title:    "",
+		frame:    false,
+		editable: false,
+		x0:       -1,
+		y0:       -1,
+		x1:       -1,
+		y1:       -1,
 	},
 }

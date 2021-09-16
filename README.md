@@ -26,6 +26,7 @@ A CLI helper for TimeSheet
     - Highlight currently selected day and go to this day when switching back to edit mode
     - Month view? [GOOD TO HAVE]
     - Type in date to go to [TO DO]
+    - Be able to hide weekend
 - Be able to type in date to go to [TO DO]
 - Undo shortcut (preferably using ctrl-z)
 - Notes for a CR [GOOD TO HAVE, MUST HAVE LATER]

@@ -13,20 +13,19 @@ import (
 )
 
 // should move this to a constants file with views.go
-const (
-	HELP_TEXT = "" +
-		"<F1> Show/hide help\n" +
-		"<Up> Select previous item\n" +
-		"<Down> Select next item\n" +
-		"<Tab> Next category\n" +
-		"<Enter> Confirm selected item\n" +
-		"<Alt-Left> Previous day\n" +
-		"<Alt-Right> Next day\n" +
-		"<Ctrl-T> Go to today\n" +
-		"<Ctrl-W> Go to weekly view\n" +
-		"<Ctrl-X> Quit and sign out of Whiteboard\n" +
-		"<Ctrl-C> Quit"
-)
+var HELP_TEXT = []string{
+	"<F1> Show/hide help",
+	"<Up> Select previous item",
+	"<Down> Select next item",
+	"<Tab> Next category",
+	"<Enter> Confirm selected item",
+	"<Alt-Left> Previous day",
+	"<Alt-Right> Next day",
+	"<Ctrl-T> Go to today",
+	"<Ctrl-W> Go to weekly view",
+	"<Ctrl-X> Quit and sign out of Whiteboard",
+	"<Ctrl-C> Quit",
+}
 
 type App struct {
 	gui *gocui.Gui
@@ -82,10 +81,22 @@ func (app *App) setupKeyBindings() {
 
 	app.gui.SetKeybinding("", gocui.KeyCtrlW, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		if app.va == nil {
+			// hacky way to get a blank view that 'covers' the other views
+			maxX, maxY := g.Size()
+			v, _ := g.SetView(BLANK_VIEW, -1, -1, maxX+1, maxY+1)
+			p := VIEW_PROPS[BLANK_VIEW]
+			v.Frame = p.frame
+			v.Editable = p.editable
+			v.Clear()
+			for i := 0; i < maxX*maxY; i++ {
+				fmt.Fprintln(v, "\r")
+			}
+
 			app.va = viewmode.NewViewApp(g, false)
 		} else {
 			app.va.Destroy()
 			app.va = nil
+			g.DeleteView(BLANK_VIEW)
 			g.SetCurrentView(FORM_VIEW)
 		}
 		return nil
@@ -236,6 +247,20 @@ func (app *App) changeItem(item string) {
 
 func (app *App) printHelp(view string) {
 	app.gui.Update(func(g *gocui.Gui) error {
+		_, maxY := app.gui.Size()
+		newY0 := float32(maxY-len(HELP_TEXT)-1) / float32(maxY)
+
+		p := VIEW_PROPS[HELP_VIEW]
+		p.y0 = float32(newY0)
+		VIEW_PROPS[HELP_VIEW] = p
+
+		p = VIEW_PROPS[FORM_VIEW]
+		p.y1 = float32(newY0)
+		VIEW_PROPS[FORM_VIEW] = p
+
+		app.setupViews()
+		app.ef.updateItemView()
+
 		v, err := g.View(HELP_VIEW)
 
 		if err != nil {
@@ -243,12 +268,8 @@ func (app *App) printHelp(view string) {
 		}
 
 		v.Clear()
-		fmt.Fprintf(v, HELP_TEXT)
-
-		_, rows := v.Size()
-		for len(v.BufferLines()) < rows {
-			v.SetCursor(0, 0)
-			v.EditNewLine()
+		for _, line := range HELP_TEXT {
+			fmt.Fprintln(v, line)
 		}
 
 		return nil

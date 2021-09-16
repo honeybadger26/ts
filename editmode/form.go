@@ -116,12 +116,32 @@ func (ef *EntryForm) updateItemView() {
 		return
 	}
 
-	iv.Title = fmt.Sprintf("%s", ef.category)
 	iv.Wrap = true
 	iv.Editable = VIEW_PROPS[ITEM_VIEW].editable
 	iv.Frame = VIEW_PROPS[ITEM_VIEW].frame
 
 	iv.Clear()
+
+	categoryText := ""
+	for c := database.ICRecent; ; c = c.GetNext() {
+		if categoryText != "" {
+			categoryText += " - "
+		}
+		if c == ef.category {
+			categoryText += fmt.Sprintf("\x1b[0;33m%s\x1b[0m", c)
+		} else {
+			categoryText += c.String()
+		}
+
+		if c.GetNext() == database.ICRecent {
+			break
+		}
+	}
+
+	cols, _ := iv.Size()
+	// used to remove the padding that is added because of the \x1b stuff
+	escapeCount := len("\x1b[0;33m\x1b[0m")
+	fmt.Fprintf(iv, "%*s\n", cols-1+escapeCount, categoryText)
 
 	if len(ef.filteredItems) == 0 {
 		fmt.Fprintf(iv, "\x1b[0;31mNo results\x1b[0m\n")
