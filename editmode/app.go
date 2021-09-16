@@ -13,6 +13,7 @@ import (
 // should move this to a constants file with views.go
 const (
 	HELP_TEXT = "" +
+		"<F1> Show/hide help\n" +
 		"<Up> Select previous item\n" +
 		"<Down> Select next item\n" +
 		"<Tab> Next category\n" +
@@ -30,8 +31,9 @@ type App struct {
 	ef  *EntryForm
 	va  *viewmode.ViewApp
 
-	date time.Time
-	item string
+	date         time.Time
+	item         string
+	showHelpText bool
 }
 
 func NewEditApp(g *gocui.Gui) *App {
@@ -53,6 +55,8 @@ func NewEditApp(g *gocui.Gui) *App {
 			app.addNewEntry()
 		}
 	}()
+
+	app.showHelpText = true
 
 	return app
 }
@@ -81,6 +85,24 @@ func (app *App) setupKeyBindings() {
 			app.va = nil
 			g.SetCurrentView(FORM_VIEW)
 		}
+		return nil
+	})
+
+	app.gui.SetKeybinding("", gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		app.showHelpText = !app.showHelpText
+		viewHelp := VIEW_PROPS[HELP_VIEW]
+		viewForm := VIEW_PROPS[FORM_VIEW]
+		if app.showHelpText {
+			viewHelp.y0 = 0.5
+			viewForm.y1 = 0.5
+		} else {
+			viewHelp.y0 = 1.0
+			viewForm.y1 = 1.0
+		}
+		VIEW_PROPS[HELP_VIEW] = viewHelp
+		VIEW_PROPS[FORM_VIEW] = viewForm
+		app.setupViews()
+		app.ef.updateItemView()
 		return nil
 	})
 }
@@ -176,7 +198,7 @@ func (app *App) printItemInfo() {
 			fmt.Fprintf(v, "Size:           %s\n", item.Size)
 		}
 		if item.TotalHours != -1 {
-			fmt.Fprintf(v, "Total Hours:    %f\n", item.TotalHours)
+			fmt.Fprintf(v, "Total Hours:    %.2f\n", item.TotalHours+float32(app.db.GetHoursLogged(item.Name)))
 		}
 		if item.URL != "" {
 			fmt.Fprintf(v, "URL:            %s\n", item.URL)
