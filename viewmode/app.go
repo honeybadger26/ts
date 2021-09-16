@@ -23,9 +23,11 @@ const (
 	HELP_TEXT_EMBEDDED = "" +
 		"<Left> Previous week\n" +
 		"<Right> Next week\n" +
-		"<Ctrl-t> Go to today\n" +
-		"<Ctrl-w> Go to edit mode\n" +
-		"<Ctrl-c> Quit"
+		"<Ctrl-T> Go to today\n" +
+		"<Ctrl-W> Go to daily view\n" +
+		"<Ctrl-C> Quit"
+
+	WEEK_HOUR_LIMIT = 40
 )
 
 type ViewApp struct {
@@ -227,6 +229,20 @@ func (app *ViewApp) refreshViews() {
 	}
 
 	// also refresh info view
+	v, err := g.View(INFO_VIEW)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	v.Clear()
+
+	totalWeekHours := app.db.GetTotalHoursForRange(app.startDate, app.endDate)
+	infoText := fmt.Sprintf("Total hours this week: %d\n", totalWeekHours)
+	if totalWeekHours < WEEK_HOUR_LIMIT {
+		infoText += fmt.Sprintf("\x1b[0;33mHours logged this week is under %d\x1b[0m", WEEK_HOUR_LIMIT)
+	}
+
+	fmt.Fprintf(v, infoText)
 }
 
 func (app *ViewApp) Destroy() {

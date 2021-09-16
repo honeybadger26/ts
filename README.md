@@ -3,46 +3,34 @@ A CLI helper for TimeSheet
 
 ## Instructions
 - In the `data` folder: 
-    - make a copy of the `items.json.base` file and name it `items.json`
-    - make a copy of the `savedlogs.json.base` file and name it `savedlogs.json`
-
-
+    - Make a copy of the `items.json.base` file and name it `items.json`
+    - Make a copy of the `savedlogs.json.base` file and name it `savedlogs.json`
 - For edit mode: `go run .`
 - For view mode: `go run . v`
 
-
 ## Todo
+
 ## Opportunities
 - Null fields for items will read the values from previous item in json. (i.e. item without description in items.json file will show description of previous item from .json file) [FIX IN FUTURE]
+
 ## Priority 1
 - Rework data structure to match JIRA timesheet data [IN PROGRESS - AMS]
 - See info for currently selected item: [TO DO]
     - Total hours logged to date (MUST HAVE FOR CR'S)
-- Have the current category of item displayed at top (make it obvious) [IN PROGRESS - SYS]
-    - `Simon:` I tried to get this at the top left of the view so it would look something like the below, but it just does not want to
-```
-┌───────────────────Admin─┐
-```
 - Option to do automatic full-day entry for a date range (FOR Annual Leave, Personal Leave, Public Holidays) [IN PROGRESS - AMS]
-- Be able to sign out of whiteboard [TO DO]
+
 ## Priority 2
 - Functionality to easily amend any day's logged hours [DONE - POLISH]
-    - `Simon:` At the moment you can do this by reentering the entry. So to amend CR-1234 you would add another entry for CR-1234 with the correct hours and this will update it. Thoughts on this? I feel like there is probably a better way of doing it
-    - `Andre:` Seems to be fine the way it is based on meeting with Alison. But one small thing that could improve it, prepopulate the input field with the existing entry so the user knows what they are amending/ deleting?
-    - `Simon:` Also deleteing is the same as amending except enter the new hours as 0
+    - Prepopulate input field for existing entries
 - View Mode
-    - Quick switch between view and edit mode (like with a keyboard shortcut) [IN PROGRESS - SYS]
-    - Help text for controls [IN PROGRESS - SYS]
+    - Highlight currently selected day and go to this day when switching back to edit mode
     - Month view? [GOOD TO HAVE]
     - Type in date to go to [TO DO]
-    - `Simon:` I believe the below are also part of the view mode?
-    - Total hours logged this week [TO DO]
-        - Breakdown of the hours into days
-        - Warning message, if not reached 40 hrs
 - Be able to type in date to go to [TO DO]
 - Undo shortcut (preferably using ctrl-z)
 - Notes for a CR [GOOD TO HAVE, MUST HAVE LATER]
-- Add 'open in JIRA' shortcut [MUST HAVE LATER]
+- Make 'Sign out of Whiteboard' work with actual whiteboard
+
 ## Priority 3
 - Error/ warning messages [NOT TOO IMPORTANT]
     - No error messages for entering greater than 24 hours on current Timesheet. It will simply input 24 if you put >24 
@@ -59,7 +47,6 @@ A CLI helper for TimeSheet
     3. Then take focus to a different grid with all items from Step 2 (like the lower grid in existing Timesheet)
     4. One-by-one for each item, user can enter hours
     5. Make the user confirm their entry (date + all items /w hours) & option to 'Save' & option to 'Back' / 'Amend' (Take back to Step 4, retain the data initially entered etc.)
-- Ability to hide/unhide UI tooltips
 - Handle file not exists
 - Handle long list of text (items and entries). Maybe tab between each window and then let the user scroll? Using key events would be way easier though like Page Up/Down
 

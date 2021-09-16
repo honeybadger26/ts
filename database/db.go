@@ -103,7 +103,7 @@ func (db *Database) GetItems(it ItemCategory) (items []Item) {
 	if it == ICRecent {
 		entries := db.getAllEntries()
 
-		for i := len(entries) - 1; i > 0; i-- {
+		for i := len(entries) - 1; i >= 0; i-- {
 			item := db.GetItem(entries[i].Item)
 
 			if !inArray(items, item) {
@@ -158,6 +158,17 @@ func (db *Database) getAllEntries() []Entry {
 	return entries
 }
 
+// Get total hours logged for item
+func (db *Database) GetHoursLogged(name string) int {
+	var result = 0
+	for _, entry := range db.getAllEntries() {
+		if entry.Item == name {
+			result += entry.Hours
+		}
+	}
+	return result
+}
+
 // Get entries by date
 func (db *Database) GetEntries(date time.Time) []Entry {
 	var entries []Entry
@@ -179,6 +190,13 @@ func (db *Database) GetTotalHours(date time.Time) int {
 		hours += entry.Hours
 	}
 	return hours
+}
+
+func (db *Database) GetTotalHoursForRange(start time.Time, end time.Time) (hours int) {
+	for d := start; d.Before(end); d = d.AddDate(0, 0, 1) {
+		hours += db.GetTotalHours(d)
+	}
+	return
 }
 
 func (db *Database) SaveEntry(entry Entry) {
