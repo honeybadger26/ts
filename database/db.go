@@ -181,6 +181,13 @@ func (db *Database) GetTotalHours(date time.Time) int {
 	return hours
 }
 
+func (db *Database) GetTotalHoursForRange(start time.Time, end time.Time) (hours int) {
+	for d := start; d.Before(end); d = d.AddDate(0, 0, 1) {
+		hours += db.GetTotalHours(d)
+	}
+	return
+}
+
 func (db *Database) SaveEntry(entry Entry) {
 	var entries []Entry
 
