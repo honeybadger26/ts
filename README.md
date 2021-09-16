@@ -2,7 +2,7 @@
 A CLI helper for TimeSheet
 
 ## Instructions
-- In the `data` folder: m
+- In the `data` folder: 
     - make a copy of the `items.json.base` file and name it `items.json`
     - make a copy of the `savedlogs.json.base` file and name it `savedlogs.json`
 
