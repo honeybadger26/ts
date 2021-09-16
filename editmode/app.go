@@ -13,6 +13,7 @@ import (
 // should move this to a constants file with views.go
 const (
 	HELP_TEXT = "" +
+		"<F1> Show/hide help\n" +
 		"<Up> Select previous item\n" +
 		"<Down> Select next item\n" +
 		"<Tab> Next category\n" +
@@ -21,7 +22,6 @@ const (
 		"<Alt-Right> Next day\n" +
 		"<Ctrl-t> Go to today\n" +
 		"<Ctrl-w> Go to view mode\n" +
-		"<Ctrl-h> Show/hide keybindings\n" +
 		"<Ctrl-c> Quit"
 )
 
@@ -88,7 +88,7 @@ func (app *App) setupKeyBindings() {
 		return nil
 	})
 
-	app.gui.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+	app.gui.SetKeybinding("", gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		app.showHelpText = !app.showHelpText
 		viewHelp := VIEW_PROPS[HELP_VIEW]
 		viewForm := VIEW_PROPS[FORM_VIEW]
