@@ -2,28 +2,14 @@
 A CLI helper for TimeSheet
 
 ## Instructions
-- Create a `data` folder
-- Copy the `` a `items.json` in the `data` folder with the following format:
-```
-[
-    {
-        "name": "Item1",
-        "description": "Item1 Description",
-        "size": "Small",
-        "totalhours": 10
-    },
-    ...
-]
-```
-- Create a `savedlogs.json` in the `data` folder with the following format (empty list):
-```
-[]
-```
+- In the `data` folder: m
+    - make a copy of the `items.json.base` file and name it `items.json`
+    - make a copy of the `savedlogs.json.base` file and name it `savedlogs.json`
+
+
 - For edit mode: `go run .`
 - For view mode: `go run . v`
 
-## Presentation Notes
-- Any above items that we want to have but didn't have time, add them to a 'road map' to show our plans for features
 
 ## Todo
 ## Priority 1
@@ -73,3 +59,6 @@ A CLI helper for TimeSheet
 - Ability to hide/unhide UI tooltips
 - Handle file not exists
 - Handle long list of text (items and entries). Maybe tab between each window and then let the user scroll? Using key events would be way easier though like Page Up/Down
+
+## Presentation Notes
+- Any above items that we want to have but didn't have time, add them to a 'road map' to show our plans for features
