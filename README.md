@@ -3,7 +3,7 @@ A CLI helper for TimeSheet
 
 ## Instructions
 - Create a `data` folder
-- Create a `items.json` in the `data` folder with the following format:
+- Copy the `` a `items.json` in the `data` folder with the following format:
 ```
 [
     {
@@ -27,14 +27,14 @@ A CLI helper for TimeSheet
 
 ## Todo
 ## Priority 1
-- See info for currently selected item:
+- See info for currently selected item: [TO DO]
     - Total hours logged to date (MUST HAVE FOR CR'S)
-- Have the current category of item displayed at top (make it obvious) [IN PROGRESS]
+- Have the current category of item displayed at top (make it obvious) [IN PROGRESS - SYS]
     - `Simon:` I tried to get this at the top left of the view so it would look something like the below, but it just does not want to
 ```
 ┌───────────────────Admin─┐
 ```
-- Option to do automatic full-day entry for a date range (FOR Annual Leave, Personal Leave, Public Holidays) [TO DO]
+- Option to do automatic full-day entry for a date range (FOR Annual Leave, Personal Leave, Public Holidays) [IN PROGRESS - AMS]
 - Be able to sign out of whiteboard [TO DO]
 ## Priority 2
 - Functionality to easily amend any day's logged hours [DONE - POLISH]
@@ -42,8 +42,8 @@ A CLI helper for TimeSheet
     - `Andre:` Seems to be fine the way it is based on meeting with Alison. But one small thing that could improve it, prepopulate the input field with the existing entry so the user knows what they are amending/ deleting?
     - `Simon:` Also deleteing is the same as amending except enter the new hours as 0
 - View Mode
-    - Quick switch between view and edit mode (like with a keyboard shortcut) [TO DO]
-    - Help text for controls [TO DO]
+    - Quick switch between view and edit mode (like with a keyboard shortcut) [IN PROGRESS - SYS]
+    - Help text for controls [IN PROGRESS - SYS]
     - Month view? [GOOD TO HAVE]
     - Type in date to go to [TO DO]
     - `Simon:` I believe the below are also part of the view mode?
