@@ -18,7 +18,8 @@ A CLI helper for TimeSheet
 - See info for currently selected item: [TO DO]
     - Total hours logged to date (MUST HAVE FOR CR'S)
 - Option to do automatic full-day entry for a date range (FOR Annual Leave, Personal Leave, Public Holidays) [IN PROGRESS - AMS]
-- Be able to sign out of whiteboard [TO DO]
+- Be able to sign out of whiteboard [IN PROGRESS - SYS]
+    - Make this work with actuall whiteboard
 
 ## Priority 2
 - Functionality to easily amend any day's logged hours [DONE - POLISH]
