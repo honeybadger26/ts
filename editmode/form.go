@@ -43,6 +43,7 @@ func NewEntryForm(app *App) (ef *EntryForm) {
 	ef = &EntryForm{}
 
 	ef.app = app
+	// ams - add a check to show ICRecent if there are recent items ?
 	ef.category = database.ICAll
 	ef.item = ""
 	ef.hours = 0
