@@ -47,7 +47,6 @@ A CLI helper for TimeSheet
     3. Then take focus to a different grid with all items from Step 2 (like the lower grid in existing Timesheet)
     4. One-by-one for each item, user can enter hours
     5. Make the user confirm their entry (date + all items /w hours) & option to 'Save' & option to 'Back' / 'Amend' (Take back to Step 4, retain the data initially entered etc.)
-- Ability to hide/unhide UI tooltips
 - Handle file not exists
 - Handle long list of text (items and entries). Maybe tab between each window and then let the user scroll? Using key events would be way easier though like Page Up/Down
 
