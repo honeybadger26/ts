@@ -103,7 +103,7 @@ func (db *Database) GetItems(it ItemCategory) (items []Item) {
 	if it == ICRecent {
 		entries := db.getAllEntries()
 
-		for i := len(entries) - 1; i > 0; i-- {
+		for i := len(entries) - 1; i >= 0; i-- {
 			item := db.GetItem(entries[i].Item)
 
 			if !inArray(items, item) {
