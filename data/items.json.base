@@ -1,0 +1,10 @@
+[
+    {
+        "name": "ItemName",
+        "description": "ItemDescription",
+        "size": "ItemSize",
+        "totalhours": -1,
+        "URL": "ItemURL",
+        "type": "ItemType"
+    }
+]
