@@ -13,6 +13,7 @@ A CLI helper for TimeSheet
 
 ## Todo
 ## Priority 1
+- Rework data structure to match JIRA timesheet data [IN PROGRESS - AMS]
 - See info for currently selected item: [TO DO]
     - Total hours logged to date (MUST HAVE FOR CR'S)
 - Have the current category of item displayed at top (make it obvious) [IN PROGRESS - SYS]
