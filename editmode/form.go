@@ -23,13 +23,13 @@ type EntryForm struct {
 
 	// User input
 	category database.ItemCategory
+	date     time.Time
 	item	 string
 	hours    int
 
 	items         []database.Item
 	filteredItems []database.Item
 	selectedIndex int
-	entry         database.Entry
 }
 
 type DateRange struct {
@@ -305,8 +305,6 @@ func (ef *EntryForm) GetDateRange() (dr DateRange) {
 }
 
 func (ef *EntryForm) SetDate(date time.Time) {
-	// should make the date format a constant somewhere
-	newDate := date.Format("02/01/2006")
 	v, _ := ef.app.gui.View(FORM_VIEW)
 	buffer := v.BufferLines()
 	cX := len(buffer[len(buffer)-1])
@@ -336,7 +334,7 @@ func (ef *EntryForm) SetDate(date time.Time) {
 	}
 
 	v.SetCursor(cX, cY)
-	ef.entry.Date = newDate
+	ef.date = date
 }
 
 // AMS - Refactor so that can be used for date ranges.
@@ -345,19 +343,18 @@ func (ef *EntryForm) GetEntry() database.Entry {
 	ef.app.gui.SetCurrentView(FORM_VIEW)
 	v.Clear()
 
-	e := &ef.entry
+	var e database.Entry
 
-	date := ef.app.date
-	e.Date = date.Format("02/01/2006")
-	fmt.Fprintf(v, "Date: %s\n", date.Format(DISPLAY_DATE_FORMAT))
+	ef.date = ef.app.date
+	fmt.Fprintf(v, "Date: %s\n", ef.date.Format(DISPLAY_DATE_FORMAT))
 
 	v.Editable = true
 
 	fmt.Fprintf(v, "Item: ")
 	ef.getItem()
-	item := ef.app.item
-	e.Item = item
-	fmt.Fprintln(v, item)
+	
+	ef.item = ef.app.item
+	fmt.Fprintln(v, ef.item)
 
 	/*
 	LeaveItem := true
@@ -372,9 +369,13 @@ func (ef *EntryForm) GetEntry() database.Entry {
 	*/
 	
 	fmt.Fprintf(v, "Hours: ")
-	hours := ef.getHours()
-	e.Hours = hours
+	ef.hours = ef.getHours()
 
 	v.Editable = false
-	return *e
+
+	e.Date = ef.date.Format(DATE_FORMAT)
+	e.Item = ef.item
+	e.Hours = ef.hours
+
+	return e
 }
