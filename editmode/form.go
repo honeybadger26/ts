@@ -15,6 +15,7 @@ import (
 
 const (
 	DISPLAY_DATE_FORMAT = "Mon 02 / Jan 01 / 2006"
+	DATE_FORMAT = "02/01/2006"
 )
 
 type EntryForm struct {
@@ -22,13 +23,18 @@ type EntryForm struct {
 
 	// User input
 	category database.ItemCategory
-	item     string
+	item	 string
 	hours    int
 
 	items         []database.Item
 	filteredItems []database.Item
 	selectedIndex int
 	entry         database.Entry
+}
+
+type DateRange struct {
+	from time.Time
+	to time.Time
 }
 
 // make a refreshView method. pretty much updateItemView but also:
@@ -232,6 +238,56 @@ func (ef *EntryForm) getHours() int {
 	return <-hours
 }
 
+func (ef *EntryForm) GetInputDate() time.Time {
+	dateChan := make(chan time.Time)
+
+	v, _ := ef.app.gui.View(FORM_VIEW)
+	buffer := v.BufferLines()
+	cX := len(buffer[len(buffer)-1])
+	cY := len(buffer) - 1
+
+	v.SetCursor(cX, cY)
+	v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+		switch {
+		case ch != 0 && mod == 0 && ch != 47 && !unicode.IsNumber(ch):
+			return
+		case key == gocui.KeyEnter:
+			buf := v.BufferLines()
+			line := buf[len(buf)-1]
+			dateStr := strings.TrimSpace(line[cX:])
+			date, _ := time.Parse(DATE_FORMAT, dateStr)
+			v.SetCursor(cX, cY)
+			for range dateStr {
+				v.EditDelete(false)
+			}
+			dateChan <-date
+			return
+		case key == gocui.KeyBackspace || key == gocui.KeyBackspace2 || key == gocui.KeyArrowLeft:
+			if newCursorX, newCursorY := v.Cursor(); newCursorX == cX && newCursorY == cY {
+				return
+			}
+		}
+		gocui.DefaultEditor.Edit(v, key, ch, mod)
+	})
+
+	return <-dateChan
+}
+
+func (ef *EntryForm) GetDateRange() (dr DateRange) {
+	v, _ := ef.app.gui.View(FORM_VIEW)
+
+	fmt.Fprintf(v, "Start Date: ")
+	startDate := ef.GetInputDate()
+	fmt.Fprintln(v, startDate.Format(DATE_FORMAT))
+
+	fmt.Fprintf(v, "End Date: ")
+	endDate := ef.GetInputDate()
+	fmt.Fprintln(v, endDate.Format(DATE_FORMAT))
+
+	dr = DateRange{startDate, endDate}
+	return
+}
+
 func (ef *EntryForm) SetDate(date time.Time) {
 	// should make the date format a constant somewhere
 	newDate := date.Format("02/01/2006")
@@ -286,10 +342,19 @@ func (ef *EntryForm) GetEntry() database.Entry {
 	e.Item = item
 	fmt.Fprintln(v, item)
 
+	LeaveItem := true
+	if LeaveItem {
+		fmt.Fprintf(v, "Logging for date range...\n")
+		dateRange :=  ef.GetDateRange()
+
+		//MOVE BELOW TO LOG
+		fmt.Fprintf(v, "First day of %s: %s\n", item, dateRange.from.Format(DATE_FORMAT))
+		fmt.Fprintf(v, "Last day of %s: %s\n", item, dateRange.to.Format(DATE_FORMAT))
+	}
+	
 	fmt.Fprintf(v, "Hours: ")
 	hours := ef.getHours()
 	e.Hours = hours
-	fmt.Fprintln(v, hours)
 
 	v.Editable = false
 	return *e
