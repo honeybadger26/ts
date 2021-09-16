@@ -99,6 +99,8 @@ func (ef *EntryForm) updateItemView() {
 	fv, _ := g.View(FORM_VIEW)
 	p := VIEW_PROPS[FORM_VIEW]
 	maxX, maxY := g.Size()
+	// shouldn't have to do all this work to get points
+	// could store the form views points on ef?
 	x0 := int(p.x0*float32(maxX)) + 1
 	y0 := int(p.y0*float32(maxY)) + 1 + len(fv.BufferLines())
 	x1 := int(p.x1*float32(maxX)) - 1 - 1
@@ -159,7 +161,7 @@ func (ef *EntryForm) getItem() {
 
 	v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 		switch {
-		case key == gocui.KeyArrowDown:
+		case key == gocui.KeyArrowDown: // most of these should be done with setKeyBindings
 			ef.changeSelectedIndex(true)
 			return
 		case key == gocui.KeyArrowUp:
