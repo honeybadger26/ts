@@ -21,6 +21,7 @@ const (
 		"<Alt-Right> Next day\n" +
 		"<Ctrl-t> Go to today\n" +
 		"<Ctrl-w> Go to view mode\n" +
+		"<Ctrl-h> Show/hide keybindings\n" +
 		"<Ctrl-c> Quit"
 )
 
@@ -30,8 +31,9 @@ type App struct {
 	ef  *EntryForm
 	va  *viewmode.ViewApp
 
-	date time.Time
-	item string
+	date         time.Time
+	item         string
+	showHelpText bool
 }
 
 func NewEditApp(g *gocui.Gui) *App {
@@ -53,6 +55,8 @@ func NewEditApp(g *gocui.Gui) *App {
 			app.addNewEntry()
 		}
 	}()
+
+	app.showHelpText = true
 
 	return app
 }
@@ -81,6 +85,24 @@ func (app *App) setupKeyBindings() {
 			app.va = nil
 			g.SetCurrentView(FORM_VIEW)
 		}
+		return nil
+	})
+
+	app.gui.SetKeybinding("", gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		app.showHelpText = !app.showHelpText
+		viewHelp := VIEW_PROPS[HELP_VIEW]
+		viewForm := VIEW_PROPS[FORM_VIEW]
+		if app.showHelpText {
+			viewHelp.y0 = 0.5
+			viewForm.y1 = 0.5
+		} else {
+			viewHelp.y0 = 1.0
+			viewForm.y1 = 1.0
+		}
+		VIEW_PROPS[HELP_VIEW] = viewHelp
+		VIEW_PROPS[FORM_VIEW] = viewForm
+		app.setupViews()
+		app.ef.updateItemView()
 		return nil
 	})
 }
