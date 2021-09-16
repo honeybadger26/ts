@@ -319,6 +319,7 @@ func (ef *EntryForm) SetDate(date time.Time) {
 	ef.entry.Date = newDate
 }
 
+// AMS - Refactor so that can be used for date ranges.
 func (ef *EntryForm) GetEntry() database.Entry {
 	v, _ := ef.app.gui.View(FORM_VIEW)
 	ef.app.gui.SetCurrentView(FORM_VIEW)
@@ -338,6 +339,7 @@ func (ef *EntryForm) GetEntry() database.Entry {
 	e.Item = item
 	fmt.Fprintln(v, item)
 
+	/*
 	LeaveItem := true
 	if LeaveItem {
 		fmt.Fprintf(v, "Logging for date range...\n")
@@ -347,6 +349,7 @@ func (ef *EntryForm) GetEntry() database.Entry {
 		fmt.Fprintf(v, "First day of %s: %s\n", item, dateRange.from.Format(DATE_FORMAT))
 		fmt.Fprintf(v, "Last day of %s: %s\n", item, dateRange.to.Format(DATE_FORMAT))
 	}
+	*/
 	
 	fmt.Fprintf(v, "Hours: ")
 	hours := ef.getHours()
