@@ -198,7 +198,7 @@ func (app *App) printItemInfo() {
 			fmt.Fprintf(v, "Size:           %s\n", item.Size)
 		}
 		if item.TotalHours != -1 {
-			fmt.Fprintf(v, "Total Hours:    %f\n", item.TotalHours)
+			fmt.Fprintf(v, "Total Hours:    %.2f\n", item.TotalHours+float32(app.db.GetHoursLogged(item.Name)))
 		}
 		if item.URL != "" {
 			fmt.Fprintf(v, "URL:            %s\n", item.URL)

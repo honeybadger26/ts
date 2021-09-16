@@ -158,6 +158,17 @@ func (db *Database) getAllEntries() []Entry {
 	return entries
 }
 
+// Get total hours logged for item
+func (db *Database) GetHoursLogged(name string) int {
+	var result = 0
+	for _, entry := range db.getAllEntries() {
+		if entry.Item == name {
+			result += entry.Hours
+		}
+	}
+	return result
+}
+
 // Get entries by date
 func (db *Database) GetEntries(date time.Time) []Entry {
 	var entries []Entry
