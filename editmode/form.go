@@ -111,6 +111,7 @@ func (ef *EntryForm) updateItemView() {
 		return
 	}
 
+	iv.Title = fmt.Sprintf("%s", ef.category)
 	iv.Wrap = true
 	iv.Editable = VIEW_PROPS[ITEM_VIEW].editable
 	iv.Frame = VIEW_PROPS[ITEM_VIEW].frame
@@ -128,12 +129,6 @@ func (ef *EntryForm) updateItemView() {
 			}
 		}
 	}
-
-	cols, rows := iv.Size()
-	for len(iv.BufferLines()) < rows {
-		fmt.Fprintln(iv, "")
-	}
-	fmt.Fprintf(iv, "%*s", cols, ef.category)
 }
 
 func (ef *EntryForm) changeSelectedIndex(forward bool) {
