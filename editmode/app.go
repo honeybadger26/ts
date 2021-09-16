@@ -6,6 +6,7 @@ import (
 	"time"
 	"ts/database"
 	"ts/viewmode"
+	"ts/whiteboard"
 
 	"github.com/jroimartin/gocui"
 )
@@ -22,6 +23,7 @@ const (
 		"<Alt-Right> Next day\n" +
 		"<Ctrl-t> Go to today\n" +
 		"<Ctrl-w> Go to view mode\n" +
+		"<Ctrl-x> Quit and sign out of Whiteboard\n" +
 		"<Ctrl-c> Quit"
 )
 
@@ -103,6 +105,13 @@ func (app *App) setupKeyBindings() {
 		VIEW_PROPS[FORM_VIEW] = viewForm
 		app.setupViews()
 		app.ef.updateItemView()
+		return nil
+	})
+
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlX, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		go func() {
+			whiteboard.NewWhiteboardHelper(g, FORM_VIEW)
+		}()
 		return nil
 	})
 }

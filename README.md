@@ -25,6 +25,7 @@ A CLI helper for TimeSheet
 - Functionality to easily amend any day's logged hours [DONE - POLISH]
     - Prepopulate input field for existing entries
 - View Mode
+    - Highlight currently selected day and go to this day when switching back to edit mode
     - Month view? [GOOD TO HAVE]
     - Type in date to go to [TO DO]
 - Be able to type in date to go to [TO DO]
