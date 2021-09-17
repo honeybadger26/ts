@@ -57,9 +57,8 @@ func NewEntryForm(app *App) (ef *EntryForm) {
 	ef = &EntryForm{}
 
 	ef.app = app
-	// ams - add a check to show ICRecent if there are recent items ?
-	ef.category = database.ICAll
 	ef.editMode = emHourly
+	ef.category = database.ICAll
 	ef.item = ""
 	ef.hours = 0
 
@@ -353,46 +352,56 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 	v.Clear()
 
 	// Set the date of the form based on the app, then display the date in User Friendly format
-	ef.date = ef.app.date
-	fmt.Fprintf(v, "Date: %s\n", ef.date.Format(DISPLAY_DATE_FORMAT))
+
+	fmt.Fprintf(v, "Date: %s\n", ef.app.date.Format(DISPLAY_DATE_FORMAT))
 
 	v.Editable = true
 
 	// Get user input for item selection
 	fmt.Fprintf(v, "Item: ")
 	ef.getItem()
-	
+	fmt.Fprintln(v, ef.app.item)
 	ef.item = ef.app.item
-	fmt.Fprintln(v, ef.item)
 
+	// Get user input for entry date and hours
+	var dateRange DateRange
+	if ef.editMode == emHourly {
+		ef.date = ef.app.date
+		fmt.Fprintf(v, "Hours: ")
+		ef.hours = ef.getHours()
+	// Or get user input for date range
+	} else if ef.editMode == emDateRange {
+		fmt.Fprintln(v, "Logging for date range...")
+		dateRange = ef.GetDateRange()
+	}
 	/*
-	LeaveItem := true
-	if LeaveItem {
-		fmt.Fprintf(v, "Logging for date range...\n")
-		dateRange :=  ef.GetDateRange()
-
 		//MOVE BELOW TO LOG
 		fmt.Fprintf(v, "First day of %s: %s\n", item, dateRange.from.Format(DATE_FORMAT))
 		fmt.Fprintf(v, "Last day of %s: %s\n", item, dateRange.to.Format(DATE_FORMAT))
-	}
 	*/
-	
-	// Get user input for hours
-	fmt.Fprintf(v, "Hours: ")
-	ef.hours = ef.getHours()
 
 	v.Editable = false
 
 	// Preparing entry(s) based on user input
 	var entry database.Entry
-
-	if ef.editMode == emHourly {
+	
+	entry.Item = ef.item
+	if (ef.editMode == emHourly) {
 		entry.Date = ef.date.Format(DATE_FORMAT)
-		entry.Item = ef.item
 		entry.Hours = ef.hours
-	}
+		entrySlice = append(entrySlice, entry)
+	/* AMS - } else if ef.dateRange is not null, etc. { */ 
+	} else {
+		for d := dateRange.from; d.After(dateRange.to) == false; d = d.AddDate(0, 0, 1) {
+			if (int(d.Weekday()) == SATURDAY) || (int(d.Weekday()) == SUNDAY) {
+				continue
+			}
 
-	entrySlice = append(entrySlice, entry)
+			entry.Date = d.Format(DATE_FORMAT)
+			entry.Hours = FULL_DAY
+			entrySlice = append(entrySlice, entry)
+		}
+	}
 
 	return entrySlice
 }
