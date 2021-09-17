@@ -158,7 +158,11 @@ func (db *Database) getAllEntries() []Entry {
 	return entries
 }
 
-func (db *Database) GetLatestEntryFromLog() Entry {
+func (db *Database) EntryCount() int {
+	return len(db.getAllEntries())
+}
+
+func (db *Database) GetLatestEntry() Entry {
 	var allEntries []Entry = db.getAllEntries()
 	return allEntries[len(allEntries)-1]
 }

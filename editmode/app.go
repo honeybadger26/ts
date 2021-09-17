@@ -106,12 +106,15 @@ func (app *App) setupKeyBindings() {
 				fmt.Fprintln(v, "\r")
 			}
 
-			app.va = viewmode.NewViewApp(g, false)
+			g.Cursor = false
+			app.va = viewmode.NewViewApp(g, app.date, false)
 		} else {
+			app.changeDate(app.va.CurrentDate)
 			app.va.Destroy()
 			app.va = nil
 			g.DeleteView(BLANK_VIEW)
 			g.SetCurrentView(FORM_VIEW)
+			g.Cursor = true
 		}
 		return nil
 	})
@@ -143,11 +146,13 @@ func (app *App) setupKeyBindings() {
 	})
 
 	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlZ, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		var latestEntry database.Entry = app.db.GetLatestEntryFromLog()
-		latestEntry.Hours = 0
-		var entrySlice []database.Entry
-		entrySlice = append(entrySlice, latestEntry)
-		app.addNewEntry(entrySlice)
+		if app.db.EntryCount() != 0 {
+			var latestEntry database.Entry = app.db.GetLatestEntry()
+			latestEntry.Hours = 0
+			var entrySlice []database.Entry
+			entrySlice = append(entrySlice, latestEntry)
+			app.addNewEntry(entrySlice)
+		}
 		return nil
 	})
 }
