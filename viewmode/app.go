@@ -14,12 +14,18 @@ import (
 const (
 	DISPLAY_DATE_FORMAT = "Mon 02 / Jan 01 / 2006"
 	WEEK_HOUR_LIMIT     = 40
+	DAY_HOUR_LIMIT      = 24
+	ITEM_LOWER_LIMIT    = 7
 )
 
 var HELP_TEXT = []string{
-	"<Left> Previous week",
-	"<Right> Next week",
+	"<Left> Previous day",
+	"<Right> Next day",
 	"<Ctrl-T> Go to today",
+	"",
+	"<Alt-Left> Previous week",
+	"<Alt-Right> Next week",
+	"",
 	"<Ctrl-C> Quit",
 }
 
@@ -33,7 +39,7 @@ type ViewApp struct {
 	// stores the names of the days that are on the week view
 	dayViews []string
 
-	currentDate time.Time
+	CurrentDate time.Time
 }
 
 func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
@@ -44,7 +50,7 @@ func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
 
 	app.showWeekend = true
 	app.standalone = standalone
-	app.currentDate = date
+	app.CurrentDate = date
 
 	app.setupKeyBindings()
 	app.setupViews()
@@ -54,19 +60,31 @@ func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
 
 func (app *ViewApp) setupKeyBindings() {
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowLeft, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.currentDate = app.currentDate.AddDate(0, 0, -7)
+		app.CurrentDate = app.CurrentDate.AddDate(0, 0, -1)
 		app.refreshViews()
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowRight, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.currentDate = app.currentDate.AddDate(0, 0, 7)
+		app.CurrentDate = app.CurrentDate.AddDate(0, 0, 1)
+		app.refreshViews()
+		return nil
+	})
+
+	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowLeft, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
+		app.CurrentDate = app.CurrentDate.AddDate(0, 0, -7)
+		app.refreshViews()
+		return nil
+	})
+
+	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowRight, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
+		app.CurrentDate = app.CurrentDate.AddDate(0, 0, 7)
 		app.refreshViews()
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyCtrlT, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.currentDate = time.Now()
+		app.CurrentDate = time.Now()
 		app.refreshViews()
 		return nil
 	})
@@ -79,12 +97,12 @@ func (app *ViewApp) setupKeyBindings() {
 }
 
 func (app *ViewApp) getDateRange() (start time.Time, end time.Time) {
-	start = app.currentDate.Truncate(24 * time.Hour)
+	start = app.CurrentDate.Truncate(24 * time.Hour)
 	for start.Weekday() != time.Monday {
 		start = start.AddDate(0, 0, -1)
 	}
 
-	end = app.currentDate.Truncate(24 * time.Hour)
+	end = app.CurrentDate.Truncate(24 * time.Hour)
 	for end.Weekday() != time.Sunday {
 		end = end.AddDate(0, 0, 1)
 	}
@@ -105,7 +123,7 @@ func (app *ViewApp) printHelp() {
 
 		helpLines := HELP_TEXT
 		if !app.standalone {
-			helpLines = append([]string{"<Ctrl-W> Go to edit view"}, helpLines...)
+			helpLines = append([]string{"<Ctrl-W> Go to edit view", ""}, helpLines...)
 		}
 
 		for _, line := range helpLines {
@@ -202,7 +220,16 @@ func (app *ViewApp) refreshViews() {
 		}
 
 		name := fmt.Sprintf("Day%d", i)
-		v, err := app.gui.SetView(name, x0, y0, x1, y1)
+		cd := app.CurrentDate
+
+		var v *gocui.View
+		var err error
+		if d.Year() == cd.Year() && d.YearDay() == cd.YearDay() {
+			// doesn't really work for weekends when they are hidden
+			v, err = app.gui.SetView(name, x0, y0-1, x1, y1+1)
+		} else {
+			v, err = app.gui.SetView(name, x0, y0, x1, y1)
+		}
 
 		if err == nil {
 			v.Clear()
@@ -240,7 +267,12 @@ func (app *ViewApp) refreshViews() {
 		pretext := "Total"
 		totalHours := app.db.GetTotalHours(d)
 		hoursStr := fmt.Sprintf("%d", totalHours)
-		fmt.Fprintf(v, "\x1b[0;32m%-*s%s\x1b[0m", cols-len(hoursStr)-1, pretext, hoursStr)
+
+		totalColor := "32"
+		if totalHours < ITEM_LOWER_LIMIT || totalHours > DAY_HOUR_LIMIT {
+			totalColor = "31"
+		}
+		fmt.Fprintf(v, "\x1b[0;"+totalColor+"m%-*s%s\x1b[0m", cols-len(hoursStr)-1, pretext, hoursStr)
 	}
 
 	// also refresh info view
@@ -251,10 +283,8 @@ func (app *ViewApp) refreshViews() {
 
 	v.Clear()
 
-	infoText := fmt.Sprintf("Today's Date: %s\n", time.Now().Format(DISPLAY_DATE_FORMAT))
-
 	totalWeekHours := app.db.GetTotalHoursForRange(startDate, endDate)
-	infoText += fmt.Sprintf("Total hours this week: %d\n", totalWeekHours)
+	infoText := fmt.Sprintf("Total hours this week: %d\n", totalWeekHours)
 	if totalWeekHours < WEEK_HOUR_LIMIT {
 		infoText += fmt.Sprintf("\x1b[0;33mHours logged this week is under %d\x1b[0m", WEEK_HOUR_LIMIT)
 	}

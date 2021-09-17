@@ -105,6 +105,7 @@ func (app *App) setupKeyBindings() {
 			g.Cursor = false
 			app.va = viewmode.NewViewApp(g, app.date, false)
 		} else {
+			app.changeDate(app.va.CurrentDate)
 			app.va.Destroy()
 			app.va = nil
 			g.DeleteView(BLANK_VIEW)
