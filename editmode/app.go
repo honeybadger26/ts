@@ -24,6 +24,7 @@ var HELP_TEXT = []string{
 	"<Ctrl-T> Go to today",
 	"<Ctrl-W> Go to weekly view",
 	"<Ctrl-J> Open URL in browser",
+	"<Ctrl-Z> Cancel latest entry",
 	"<Ctrl-X> Quit and sign out of Whiteboard",
 	"<Ctrl-C> Quit",
 }
@@ -55,7 +56,8 @@ func NewEditApp(g *gocui.Gui) *App {
 	app.printHelp(FORM_VIEW)
 	go func() {
 		for {
-			app.addNewEntry()
+			app.ef = NewEntryForm(app)
+			app.addNewEntry(app.ef.GetEntries())
 		}
 	}()
 
@@ -126,6 +128,15 @@ func (app *App) setupKeyBindings() {
 		go func() {
 			whiteboard.NewWhiteboardHelper(g, FORM_VIEW)
 		}()
+		return nil
+	})
+
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlZ, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		var latestEntry database.Entry = app.db.GetLatestEntryFromLog()
+		latestEntry.Hours = 0
+		var entrySlice []database.Entry
+		entrySlice = append(entrySlice, latestEntry)
+		app.addNewEntry(entrySlice)
 		return nil
 	})
 }
@@ -274,11 +285,8 @@ func (app *App) printHelp(view string) {
 	})
 }
 
-func (app *App) addNewEntry() {
-	app.ef = NewEntryForm(app)
-	eSlice := app.ef.GetEntries()
-
-	for _, e := range eSlice {
+func (app *App) addNewEntry(entrySlice []database.Entry) {
+	for _, e := range entrySlice {
 		entryStr := fmt.Sprintf("%s - %s - %d hours", e.Date, e.Item, e.Hours)
 		var msg string
 		if app.db.EntryExists(e.Date, e.Item) {

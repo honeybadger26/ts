@@ -158,6 +158,11 @@ func (db *Database) getAllEntries() []Entry {
 	return entries
 }
 
+func (db *Database) GetLatestEntryFromLog() Entry {
+	var allEntries []Entry = db.getAllEntries()
+	return allEntries[len(allEntries)-1]
+}
+
 // Get total hours logged for item
 func (db *Database) GetHoursLogged(name string) int {
 	var result = 0

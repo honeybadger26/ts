@@ -29,7 +29,6 @@ A CLI helper for TimeSheet
     - Month view? [GOOD TO HAVE]
     - Type in date to go to [TO DO]
 - Be able to type in date to go to [TO DO]
-- Undo shortcut (preferably using ctrl-z)
 - Notes for a CR [GOOD TO HAVE, MUST HAVE LATER]
 - Make 'Sign out of Whiteboard' work with actual whiteboard
 
