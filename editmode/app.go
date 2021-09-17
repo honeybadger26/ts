@@ -139,11 +139,13 @@ func (app *App) setupKeyBindings() {
 	})
 
 	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlZ, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		var latestEntry database.Entry = app.db.GetLatestEntryFromLog()
-		latestEntry.Hours = 0
-		var entrySlice []database.Entry
-		entrySlice = append(entrySlice, latestEntry)
-		app.addNewEntry(entrySlice)
+		if app.db.EntryCount() != 0 {
+			var latestEntry database.Entry = app.db.GetLatestEntry()
+			latestEntry.Hours = 0
+			var entrySlice []database.Entry
+			entrySlice = append(entrySlice, latestEntry)
+			app.addNewEntry(entrySlice)
+		}
 		return nil
 	})
 }
