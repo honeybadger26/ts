@@ -28,6 +28,12 @@ var HELP_TEXT = []string{
 	"<Ctrl-C> Quit",
 }
 
+const (
+	FULL_DAY = 8
+	SUNDAY = 0
+	SATURDAY = 6
+)
+
 type App struct {
 	gui *gocui.Gui
 	db  *database.Database
@@ -67,6 +73,11 @@ func NewEditApp(g *gocui.Gui) *App {
 func (app *App) setupKeyBindings() {
 	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyArrowLeft, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
 		app.changeDate(app.date.AddDate(0, 0, -1))
+		return nil
+	})
+
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyArrowRight, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
+		app.changeDate(app.date.AddDate(0, 0, 1))
 		return nil
 	})
 
