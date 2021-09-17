@@ -105,20 +105,10 @@ func (app *App) setupKeyBindings() {
 
 	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		app.showHelpText = !app.showHelpText
-		viewHelp := VIEW_PROPS[HELP_VIEW]
-		viewForm := VIEW_PROPS[FORM_VIEW]
-		if app.showHelpText {
-			viewHelp.y0 = 0.5
-			viewForm.y1 = 0.5
-		} else {
+		app.setHelpVisible(app.showHelpText)
+		if !app.showHelpText {
 			app.log("Help section hidden. Press F1 to unhide.")
-			viewHelp.y0 = 1.0
-			viewForm.y1 = 1.0
 		}
-		VIEW_PROPS[HELP_VIEW] = viewHelp
-		VIEW_PROPS[FORM_VIEW] = viewForm
-		app.setupViews()
-		app.ef.updateItemView()
 		return nil
 	})
 
@@ -246,22 +236,29 @@ func (app *App) changeItem(item string) {
 	app.printItemInfo()
 }
 
+func (app *App) setHelpVisible(visible bool) {
+
+	viewHelp := VIEW_PROPS[HELP_VIEW]
+	viewForm := VIEW_PROPS[FORM_VIEW]
+
+	var boundary float32 = 1.0
+	if visible {
+		_, maxY := app.gui.Size()
+		boundary = float32(maxY-len(HELP_TEXT)-1) / float32(maxY)
+	}
+
+	viewHelp.y0 = boundary
+	viewForm.y1 = boundary
+	VIEW_PROPS[HELP_VIEW] = viewHelp
+	VIEW_PROPS[FORM_VIEW] = viewForm
+
+	app.setupViews()
+	app.ef.updateItemView()
+}
+
 func (app *App) printHelp(view string) {
 	app.gui.Update(func(g *gocui.Gui) error {
-		_, maxY := app.gui.Size()
-		newY0 := float32(maxY-len(HELP_TEXT)-1) / float32(maxY)
-
-		p := VIEW_PROPS[HELP_VIEW]
-		p.y0 = float32(newY0)
-		VIEW_PROPS[HELP_VIEW] = p
-
-		p = VIEW_PROPS[FORM_VIEW]
-		p.y1 = float32(newY0)
-		VIEW_PROPS[FORM_VIEW] = p
-
-		app.setupViews()
-		app.ef.updateItemView()
-
+		app.setHelpVisible(true)
 		v, err := g.View(HELP_VIEW)
 
 		if err != nil {
