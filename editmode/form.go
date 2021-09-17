@@ -18,12 +18,20 @@ const (
 	DATE_FORMAT = "02/01/2006"
 )
 
+type EditMode int
+
+const (
+	emHourly EditMode = iota
+	emDateRange
+)
+
 type EntryForm struct {
 	app *App
 
 	// User input
 	category database.ItemCategory
 	date     time.Time
+	editMode EditMode
 	item	 string
 	hours    int
 
@@ -51,6 +59,7 @@ func NewEntryForm(app *App) (ef *EntryForm) {
 	ef.app = app
 	// ams - add a check to show ICRecent if there are recent items ?
 	ef.category = database.ICAll
+	ef.editMode = emHourly
 	ef.item = ""
 	ef.hours = 0
 
@@ -377,11 +386,12 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 	// Preparing entry(s) based on user input
 	var entry database.Entry
 
-	entry.Date = ef.date.Format(DATE_FORMAT)
-	entry.Item = ef.item
-	entry.Hours = ef.hours
+	if ef.editMode == emHourly {
+		entry.Date = ef.date.Format(DATE_FORMAT)
+		entry.Item = ef.item
+		entry.Hours = ef.hours
+	}
 
-	entrySlice = append(entrySlice, entry)
 	entrySlice = append(entrySlice, entry)
 
 	return entrySlice
