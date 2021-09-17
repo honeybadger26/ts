@@ -13,22 +13,15 @@ import (
 // repeated code - form.go
 const (
 	DISPLAY_DATE_FORMAT = "Mon 02 / Jan 01 / 2006"
-
-	HELP_TEXT_STANDALONE = "" +
-		"<Left> Previous week\n" +
-		"<Right> Next week\n" +
-		"<Ctrl-t> Go to today\n" +
-		"<Ctrl-c> Quit"
-
-	HELP_TEXT_EMBEDDED = "" +
-		"<Left> Previous week\n" +
-		"<Right> Next week\n" +
-		"<Ctrl-T> Go to today\n" +
-		"<Ctrl-W> Go to daily view\n" +
-		"<Ctrl-C> Quit"
-
-	WEEK_HOUR_LIMIT = 40
+	WEEK_HOUR_LIMIT     = 40
 )
+
+var HELP_TEXT = []string{
+	"<Left> Previous week",
+	"<Right> Next week",
+	"<Ctrl-T> Go to today",
+	"<Ctrl-C> Quit",
+}
 
 type ViewApp struct {
 	gui *gocui.Gui
@@ -99,10 +92,12 @@ func (app *ViewApp) printHelp() {
 
 		v.Clear()
 
-		if app.standalone {
-			fmt.Fprintf(v, HELP_TEXT_STANDALONE)
-		} else {
-			fmt.Fprintf(v, HELP_TEXT_EMBEDDED)
+		if !app.standalone {
+			HELP_TEXT = append([]string{"<Ctrl-W> Go to edit view"}, HELP_TEXT...)
+		}
+
+		for _, line := range HELP_TEXT {
+			fmt.Fprintln(v, line)
 		}
 
 		// hacky way to get text to be at bottom of view
@@ -236,13 +231,15 @@ func (app *ViewApp) refreshViews() {
 
 	v.Clear()
 
+	infoText := fmt.Sprintf("Today's Date: %s\n", time.Now().Format(DISPLAY_DATE_FORMAT))
+
 	totalWeekHours := app.db.GetTotalHoursForRange(app.startDate, app.endDate)
-	infoText := fmt.Sprintf("Total hours this week: %d\n", totalWeekHours)
+	infoText += fmt.Sprintf("Total hours this week: %d\n", totalWeekHours)
 	if totalWeekHours < WEEK_HOUR_LIMIT {
 		infoText += fmt.Sprintf("\x1b[0;33mHours logged this week is under %d\x1b[0m", WEEK_HOUR_LIMIT)
 	}
 
-	fmt.Fprintf(v, infoText)
+	fmt.Fprint(v, infoText)
 }
 
 func (app *ViewApp) Destroy() {

@@ -102,12 +102,14 @@ func (app *App) setupKeyBindings() {
 				fmt.Fprintln(v, "\r")
 			}
 
+			g.Cursor = false
 			app.va = viewmode.NewViewApp(g, false)
 		} else {
 			app.va.Destroy()
 			app.va = nil
 			g.DeleteView(BLANK_VIEW)
 			g.SetCurrentView(FORM_VIEW)
+			g.Cursor = true
 		}
 		return nil
 	})
