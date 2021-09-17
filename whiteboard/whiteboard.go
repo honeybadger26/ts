@@ -9,7 +9,7 @@ import (
 
 type WhiteboardHelper struct {
 	gui          *gocui.Gui
-	width        int
+	width        float32
 	previousView string
 }
 
@@ -49,7 +49,7 @@ func (wh *WhiteboardHelper) getViewContent(text []string) (content []string) {
 
 	for _, t := range text {
 		leftPadding := 0
-		rightPadding := wh.width - len(t)
+		rightPadding := int(wh.width) - len(t)
 		paddingStr := ""
 		for leftPadding < rightPadding {
 			leftPadding++
@@ -94,11 +94,11 @@ func (wh *WhiteboardHelper) setupView(text []string) {
 	wh.gui.Update(func(g *gocui.Gui) error {
 		maxX, maxY := g.Size()
 		height := len(text) + (2 * PADDING_LINES)
-		wh.width = maxX / 3
+		wh.width = float32(maxX) * 0.5
 
-		x0 := int(0.5*float32(maxX)) - (wh.width / 2)
+		x0 := int(0.5*float32(maxX) - (wh.width / 2))
 		y0 := int(0.5*float32(maxY)) - (height / 2)
-		x1 := int(0.5*float32(maxX)) + (wh.width / 2)
+		x1 := int(0.5*float32(maxX) + (wh.width / 2))
 		y1 := y0 + height + 1
 
 		v, err := g.SetView(VIEW_NAME, x0, y0, x1, y1)

@@ -25,6 +25,7 @@ var HELP_TEXT = []string{
 	"",
 	"<Alt-Left> Previous week",
 	"<Alt-Right> Next week",
+	"<Ctrl-H> Show/hide weekend",
 	"",
 	"<Ctrl-C> Quit",
 }

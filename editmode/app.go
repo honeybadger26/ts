@@ -36,7 +36,7 @@ var HELP_TEXT = []string{
 
 const (
 	FULL_DAY = 8
-	SUNDAY = 0
+	SUNDAY   = 0
 	SATURDAY = 6
 )
 
