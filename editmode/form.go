@@ -208,7 +208,7 @@ func (ef *EntryForm) getItem() {
 			}
 			return
 		case key == gocui.KeyCtrlD:
-			if ef.app.item != "" {
+			if (ef.app.item != "") && (strings.Contains(ef.app.item, "Leave") || strings.Contains(ef.app.item, "Holiday")) {
 				ef.app.gui.DeleteView(ITEM_VIEW)
 				v.SetCursor(cX, cY)
 				for range ef.filteredItems[ef.selectedIndex].Name {
