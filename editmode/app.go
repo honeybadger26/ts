@@ -103,7 +103,7 @@ func (app *App) setupKeyBindings() {
 			}
 
 			g.Cursor = false
-			app.va = viewmode.NewViewApp(g, false)
+			app.va = viewmode.NewViewApp(g, app.date, false)
 		} else {
 			app.va.Destroy()
 			app.va = nil

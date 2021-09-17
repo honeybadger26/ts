@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/jroimartin/gocui"
 
@@ -31,7 +32,7 @@ func main() {
 	if len(os.Args) == 1 {
 		editmode.NewEditApp(g)
 	} else if os.Args[1] == "v" {
-		viewmode.NewViewApp(g, true)
+		viewmode.NewViewApp(g, time.Now(), true)
 	}
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {

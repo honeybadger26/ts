@@ -27,23 +27,26 @@ type ViewApp struct {
 	gui *gocui.Gui
 	db  *database.Database
 
-	standalone bool
+	showWeekend bool
+	standalone  bool
 
 	// stores the names of the days that are on the week view
-	dayViews  []string
-	startDate time.Time
-	endDate   time.Time
+	dayViews []string
+
+	currentDate time.Time
 }
 
-func NewViewApp(g *gocui.Gui, standalone bool) (app *ViewApp) {
+func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
 	app = &ViewApp{}
 
 	app.gui = g
 	app.db = &database.Database{}
+
+	app.showWeekend = true
 	app.standalone = standalone
+	app.currentDate = date
 
 	app.setupKeyBindings()
-	app.setDate(time.Now())
 	app.setupViews()
 
 	return
@@ -51,34 +54,42 @@ func NewViewApp(g *gocui.Gui, standalone bool) (app *ViewApp) {
 
 func (app *ViewApp) setupKeyBindings() {
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowLeft, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.setDate(app.startDate.AddDate(0, 0, -7))
+		app.currentDate = app.currentDate.AddDate(0, 0, -7)
 		app.refreshViews()
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowRight, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.setDate(app.startDate.AddDate(0, 0, 7))
+		app.currentDate = app.currentDate.AddDate(0, 0, 7)
 		app.refreshViews()
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyCtrlT, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.setDate(time.Now())
+		app.currentDate = time.Now()
+		app.refreshViews()
+		return nil
+	})
+
+	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyCtrlH, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		app.showWeekend = !app.showWeekend
 		app.refreshViews()
 		return nil
 	})
 }
 
-func (app *ViewApp) setDate(date time.Time) {
-	app.startDate = date.Truncate(24 * time.Hour)
-	for app.startDate.Weekday() != time.Monday {
-		app.startDate = app.startDate.AddDate(0, 0, -1)
+func (app *ViewApp) getDateRange() (start time.Time, end time.Time) {
+	start = app.currentDate.Truncate(24 * time.Hour)
+	for start.Weekday() != time.Monday {
+		start = start.AddDate(0, 0, -1)
 	}
 
-	app.endDate = date.Truncate(24 * time.Hour)
-	for app.endDate.Weekday() != time.Sunday {
-		app.endDate = app.endDate.AddDate(0, 0, 1)
+	end = app.currentDate.Truncate(24 * time.Hour)
+	for end.Weekday() != time.Sunday {
+		end = end.AddDate(0, 0, 1)
 	}
+
+	return
 }
 
 func (app *ViewApp) printHelp() {
@@ -92,11 +103,12 @@ func (app *ViewApp) printHelp() {
 
 		v.Clear()
 
+		helpLines := HELP_TEXT
 		if !app.standalone {
-			HELP_TEXT = append([]string{"<Ctrl-W> Go to edit view"}, HELP_TEXT...)
+			helpLines = append([]string{"<Ctrl-W> Go to edit view"}, helpLines...)
 		}
 
-		for _, line := range HELP_TEXT {
+		for _, line := range helpLines {
 			fmt.Fprintln(v, line)
 		}
 
@@ -154,15 +166,23 @@ func (app *ViewApp) refreshViews() {
 	parenty1 := int(p.y1*float32(maxY)) - 1
 
 	var x0, y0, x1, y1 int
-	numDays := 0
+	startDate, endDate := app.getDateRange()
 
-	for d := app.startDate; d.Before(app.endDate); d = d.AddDate(0, 0, 1) {
-		numDays++
+	// width is 6 instead of 7 because weekend days are stacked
+	numDays := 7
+	width := (parentx1 - parentx0 - 1) / (numDays - 1)
+
+	if !app.showWeekend {
+		numDays = 5
+		width = (parentx1 - parentx0 - 1) / numDays
 	}
 
-	width := (parentx1 - parentx0 - 1) / numDays
+	for _, name := range app.dayViews {
+		app.gui.DeleteView(name)
+	}
+	app.dayViews = []string{}
 
-	for i, d := 0, app.startDate; i <= numDays; i, d = i+1, d.AddDate(0, 0, 1) {
+	for i, d := 0, startDate; i < numDays; i, d = i+1, d.AddDate(0, 0, 1) {
 		// surely there's a better way to do this?
 		if d.Weekday() == time.Monday {
 			x0 = parentx0 + 1
@@ -233,7 +253,7 @@ func (app *ViewApp) refreshViews() {
 
 	infoText := fmt.Sprintf("Today's Date: %s\n", time.Now().Format(DISPLAY_DATE_FORMAT))
 
-	totalWeekHours := app.db.GetTotalHoursForRange(app.startDate, app.endDate)
+	totalWeekHours := app.db.GetTotalHoursForRange(startDate, endDate)
 	infoText += fmt.Sprintf("Total hours this week: %d\n", totalWeekHours)
 	if totalWeekHours < WEEK_HOUR_LIMIT {
 		infoText += fmt.Sprintf("\x1b[0;33mHours logged this week is under %d\x1b[0m", WEEK_HOUR_LIMIT)
