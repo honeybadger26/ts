@@ -22,6 +22,7 @@ var HELP_TEXT = []string{
 	"<Alt-Left> Previous day",
 	"<Alt-Right> Next day",
 	"<Ctrl-T> Go to today",
+	"<Ctrl-D> Log Date Range (Leave / Public Holiday)",
 	"<Ctrl-W> Go to weekly view",
 	"<Ctrl-J> Open URL in browser",
 	"<Ctrl-Z> Cancel latest entry",
@@ -75,11 +76,6 @@ func NewEditApp(g *gocui.Gui) *App {
 func (app *App) setupKeyBindings() {
 	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyArrowLeft, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
 		app.changeDate(app.date.AddDate(0, 0, -1))
-		return nil
-	})
-
-	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyArrowRight, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
-		app.changeDate(app.date.AddDate(0, 0, 1))
 		return nil
 	})
 

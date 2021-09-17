@@ -207,6 +207,17 @@ func (ef *EntryForm) getItem() {
 				done <- true
 			}
 			return
+		case key == gocui.KeyCtrlD:
+			if ef.app.item != "" {
+				ef.app.gui.DeleteView(ITEM_VIEW)
+				v.SetCursor(cX, cY)
+				for range ef.filteredItems[ef.selectedIndex].Name {
+					v.EditDelete(false)
+				}
+				ef.editMode = emDateRange
+				done <- true
+			}
+			return
 		case key == gocui.KeyBackspace || key == gocui.KeyBackspace2 || key == gocui.KeyArrowLeft:
 			if newCursorX, newCursorY := v.Cursor(); newCursorX == cX && newCursorY == cY {
 				return
@@ -371,18 +382,16 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 		ef.hours = ef.getHours()
 	// Or get user input for date range
 	} else if ef.editMode == emDateRange {
+		v.Clear()
+		fmt.Fprintf(v, "Item: ")
+		fmt.Fprintln(v, ef.app.item)
 		fmt.Fprintln(v, "Logging for date range...")
 		dateRange = ef.GetDateRange()
 	}
-	/*
-		//MOVE BELOW TO LOG
-		fmt.Fprintf(v, "First day of %s: %s\n", item, dateRange.from.Format(DATE_FORMAT))
-		fmt.Fprintf(v, "Last day of %s: %s\n", item, dateRange.to.Format(DATE_FORMAT))
-	*/
 
 	v.Editable = false
 
-	// Preparing entry(s) based on user input
+	// Preparing entry(s) based on editMode and user input
 	var entry database.Entry
 	
 	entry.Item = ef.item
@@ -390,7 +399,6 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 		entry.Date = ef.date.Format(DATE_FORMAT)
 		entry.Hours = ef.hours
 		entrySlice = append(entrySlice, entry)
-	/* AMS - } else if ef.dateRange is not null, etc. { */ 
 	} else {
 		for d := dateRange.from; d.After(dateRange.to) == false; d = d.AddDate(0, 0, 1) {
 			if (int(d.Weekday()) == SATURDAY) || (int(d.Weekday()) == SUNDAY) {
