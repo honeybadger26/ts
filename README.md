@@ -13,6 +13,7 @@ A CLI helper for TimeSheet
 ## Opportunities
 - Null fields for items will read the values from previous item in json. (i.e. item without description in items.json file will show description of previous item from .json file) [FIX IN FUTURE]
 - Selected category is not saved after submitting entry
+- General input validation (especially dates could be improved)
 
 ## Priority 1
 - Rework data structure to match JIRA timesheet data [IN PROGRESS - AMS]
