@@ -20,6 +20,8 @@ const (
 )
 
 var HELP_TEXT = []string{
+	"<F1> Show/hide help",
+	"",
 	"<Left> Previous day",
 	"<Right> Next day",
 	"<Ctrl-T> Go to today",
@@ -35,6 +37,7 @@ type ViewApp struct {
 	gui *gocui.Gui
 	db  *database.Database
 
+	showHelp    bool
 	showWeekend bool
 	standalone  bool
 
@@ -51,12 +54,15 @@ func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
 	app.gui = g
 	app.db = &database.Database{}
 
+	app.showHelp = true
 	app.showWeekend = true
 	app.standalone = standalone
 	app.CurrentDate = date
 
 	app.setupKeyBindings()
 	app.setupViews()
+	app.printHelp()
+	g.SetCurrentView(INFO_VIEW)
 
 	return
 }
@@ -93,6 +99,12 @@ func (app *ViewApp) setupKeyBindings() {
 	if !app.standalone {
 		app.gui.SetKeybinding(INFO_VIEW, gocui.KeyCtrlW, gocui.ModNone, app.destroy)
 	}
+
+	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyF1, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		app.showHelp = !app.showHelp
+		app.printHelp()
+		return nil
+	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowLeft, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		app.handleDateChange(false, dcDay)
@@ -131,12 +143,14 @@ func (app *ViewApp) setupKeyBindings() {
 }
 
 func (app *ViewApp) getDateRange() (start time.Time, end time.Time) {
-	start = app.CurrentDate.Truncate(24 * time.Hour)
+	// start = app.CurrentDate.Truncate(24 * time.Hour)
+	start = app.CurrentDate
 	for start.Weekday() != time.Monday {
 		start = start.AddDate(0, 0, -1)
 	}
 
-	end = app.CurrentDate.Truncate(24 * time.Hour)
+	// end = app.CurrentDate.Truncate(24 * time.Hour)
+	end = app.CurrentDate
 	for end.Weekday() != time.Sunday {
 		end = end.AddDate(0, 0, 1)
 	}
@@ -145,6 +159,39 @@ func (app *ViewApp) getDateRange() (start time.Time, end time.Time) {
 }
 
 func (app *ViewApp) printHelp() {
+	// repeated code app.go in editmode setHelpVisible
+	viewWeek := VIEW_PROPS[WEEK_VIEW]
+	viewHelp := VIEW_PROPS[HELP_VIEW]
+	viewInfo := VIEW_PROPS[INFO_VIEW]
+
+	helpLines := HELP_TEXT
+	if !app.standalone {
+		helpLines = append(HELP_TEXT[:len(HELP_TEXT)-1], HELP_TEXT[len(HELP_TEXT)-2:]...)
+		helpLines[len(helpLines)-2] = "<Ctrl-W> Go to edit view"
+	}
+
+	if app.showHelp {
+		_, maxY := app.gui.Size()
+		y := float32(maxY-len(helpLines)) / float32(maxY)
+		viewWeek.Y1 = y
+		viewHelp.Y0 = y
+		viewInfo.Y0 = y
+		viewInfo.X0 = 0.5
+	} else {
+		viewInfo.X0 = 0.0
+	}
+
+	VIEW_PROPS[WEEK_VIEW] = viewWeek
+	VIEW_PROPS[HELP_VIEW] = viewHelp
+	VIEW_PROPS[INFO_VIEW] = viewInfo
+
+	app.setupViews()
+	app.refreshViews()
+
+	if !app.showHelp {
+		return
+	}
+
 	app.gui.Update(func(g *gocui.Gui) error {
 		// repeated code - app.go, printHelp
 		v, err := g.View(HELP_VIEW)
@@ -155,20 +202,8 @@ func (app *ViewApp) printHelp() {
 
 		v.Clear()
 
-		helpLines := HELP_TEXT
-		if !app.standalone {
-			helpLines = append([]string{"<Ctrl-W> Go to edit view", ""}, helpLines...)
-		}
-
 		for _, line := range helpLines {
 			fmt.Fprintln(v, line)
-		}
-
-		// hacky way to get text to be at bottom of view
-		_, rows := v.Size()
-		for len(v.BufferLines()) <= rows {
-			v.SetCursor(0, 0)
-			v.EditNewLine()
 		}
 
 		return nil
@@ -185,10 +220,6 @@ func (app *ViewApp) setupViews() {
 	for _, n := range MAIN_VIEWS {
 		viewmanager.SetupView(g, n, VIEW_PROPS[n])
 	}
-
-	app.refreshViews()
-	app.printHelp()
-	g.SetCurrentView(INFO_VIEW)
 }
 
 // make this relative to WEEK_VIEW

@@ -58,9 +58,9 @@ type Item struct {
 }
 
 type Entry struct {
-	Date  string
+	Date  time.Time
 	Item  string
-	Hours int
+	Hours int // should be a float
 }
 
 type Database struct{}
@@ -179,12 +179,12 @@ func (db *Database) GetHoursLogged(name string) int {
 }
 
 // Get entries by date
-func (db *Database) GetEntries(date time.Time) []Entry {
+func (db *Database) GetEntries(d time.Time) []Entry {
 	var entries []Entry
 
-	for _, entry := range db.getAllEntries() {
-		if entry.Date == date.Format("02/01/2006") {
-			entries = append(entries, entry)
+	for _, e := range db.getAllEntries() {
+		if e.Date.Year() == d.Year() && e.Date.YearDay() == d.YearDay() {
+			entries = append(entries, e)
 		}
 	}
 
@@ -202,7 +202,9 @@ func (db *Database) GetTotalHours(date time.Time) int {
 }
 
 func (db *Database) GetTotalHoursForRange(start time.Time, end time.Time) (hours int) {
-	for d := start; d.Before(end); d = d.AddDate(0, 0, 1) {
+	t0 := start.Truncate(24 * time.Hour)
+	t1 := end.AddDate(0, 0, 1).Truncate(24 * time.Hour)
+	for d := t0; d.Before(t1); d = d.AddDate(0, 0, 1) {
 		hours += db.GetTotalHours(d)
 	}
 	return
@@ -219,7 +221,8 @@ func (db *Database) SaveEntry(entry Entry) {
 
 	// remove entry if exists
 	for i, e := range entries {
-		if e.Date == entry.Date && e.Item == entry.Item {
+		if e.Date.Year() == entry.Date.Year() && e.Date.YearDay() == entry.Date.YearDay() &&
+			e.Item == entry.Item {
 			entries = append(entries[:i], entries[i+1:]...)
 			break
 		}
@@ -239,9 +242,9 @@ func (db *Database) SaveEntry(entry Entry) {
 }
 
 // Check if entry with same date and for same item exists
-func (db *Database) EntryExists(date string, item string) bool {
+func (db *Database) EntryExists(d time.Time, item string) bool {
 	for _, e := range db.getAllEntries() {
-		if e.Date == date && e.Item == item {
+		if e.Date.Year() == d.Year() && e.Date.YearDay() == d.YearDay() && e.Item == item {
 			return true
 		}
 	}

@@ -381,7 +381,7 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 
 	entry.Item = ef.item
 	if ef.editMode == emHourly {
-		entry.Date = ef.date.Format(DATE_FORMAT)
+		entry.Date = ef.date
 		entry.Hours = ef.hours
 		entrySlice = append(entrySlice, entry)
 	} else {
@@ -390,7 +390,7 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 				continue
 			}
 
-			entry.Date = d.Format(DATE_FORMAT)
+			entry.Date = d
 			entry.Hours = FULL_DAY
 			entrySlice = append(entrySlice, entry)
 		}

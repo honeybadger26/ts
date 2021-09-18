@@ -35,7 +35,7 @@ func SetupView(g *gocui.Gui, name string, props ViewProps) {
 
 	if v, err := g.SetView(name, x0, y0, x1, y1); err != nil {
 		if err != gocui.ErrUnknownView {
-			log.Panicln(err)
+			log.Panicln(x0, y0, x1, y1)
 		}
 
 		v.Title = props.Title

@@ -229,7 +229,6 @@ func (app *App) changeItem(item string) {
 }
 
 func (app *App) setHelpVisible(visible bool) {
-
 	viewHelp := VIEW_PROPS[HELP_VIEW]
 	viewForm := VIEW_PROPS[FORM_VIEW]
 
@@ -268,7 +267,7 @@ func (app *App) printHelp(view string) {
 
 func (app *App) addNewEntry(entrySlice []database.Entry) {
 	for _, e := range entrySlice {
-		entryStr := fmt.Sprintf("%s - %s - %d hours", e.Date, e.Item, e.Hours)
+		entryStr := fmt.Sprintf("%s - %s - %d hours", e.Date.Format(DATE_FORMAT), e.Item, e.Hours)
 		var msg string
 		if app.db.EntryExists(e.Date, e.Item) {
 			if e.Hours == 0 {
