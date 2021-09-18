@@ -139,7 +139,7 @@ func (app *ViewApp) printHelp() {
 
 		// hacky way to get text to be at bottom of view
 		_, rows := v.Size()
-		for len(v.BufferLines()) < rows {
+		for len(v.BufferLines()) <= rows {
 			v.SetCursor(0, 0)
 			v.EditNewLine()
 		}

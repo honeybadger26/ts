@@ -237,7 +237,7 @@ func (app *App) setHelpVisible(visible bool) {
 	var boundary float32 = 1.0
 	if visible {
 		_, maxY := app.gui.Size()
-		boundary = float32(maxY-len(HELP_TEXT)-1) / float32(maxY)
+		boundary = float32(maxY-len(HELP_TEXT)) / float32(maxY)
 	}
 
 	viewHelp.Y0 = boundary
