@@ -1,5 +1,7 @@
 package editmode
 
+import "ts/viewmanager"
+
 const (
 	FORM_VIEW    = "em_form"
 	ITEM_VIEW    = "em_form.item"
@@ -8,7 +10,6 @@ const (
 	ENTRIES_VIEW = "em_entries"
 	INFO_VIEW    = "em_info"
 	LOGGER_VIEW  = "em_logger"
-	BLANK_VIEW   = "em_blank"
 )
 
 var MAIN_VIEWS = []string{
@@ -19,75 +20,71 @@ var MAIN_VIEWS = []string{
 	LOGGER_VIEW,
 }
 
-type viewProps struct {
-	title          string
-	frame          bool
-	editable       bool
-	x0, y0, x1, y1 float32
-}
-
-var VIEW_PROPS = map[string]viewProps{
+var VIEW_PROPS = map[string]viewmanager.ViewProps{
 	FORM_VIEW: {
-		title:    "New Entry",
-		frame:    true,
-		editable: true,
-		x0:       0.0,
-		y0:       0.0,
-		x1:       0.5,
-		y1:       0.5,
+		Title:      "New Entry",
+		Frame:      true,
+		Editable:   true,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         0.0,
+		Y0:         0.0,
+		X1:         0.5,
+		Y1:         0.5,
 	},
 	ITEM_VIEW: {
-		title:    "",
-		frame:    true,
-		editable: true,
-		x0:       -1.0,
-		y0:       -1.0,
-		x1:       -1.0,
-		y1:       -1.0,
+		Title:      "",
+		Frame:      true,
+		Editable:   true,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         -1.0,
+		Y0:         -1.0,
+		X1:         -1.0,
+		Y1:         -1.0,
 	},
 	HELP_VIEW: {
-		title:    "",
-		frame:    false,
-		editable: false,
-		x0:       0.0,
-		y0:       0.4,
-		x1:       0.5,
-		y1:       1.0,
+		Title:      "",
+		Frame:      false,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         0.0,
+		Y0:         0.4,
+		X1:         0.5,
+		Y1:         1.0,
 	},
 	ENTRIES_VIEW: {
-		title:    "Entries",
-		frame:    true,
-		editable: false,
-		x0:       0.5,
-		y0:       0.333,
-		x1:       1.0,
-		y1:       0.80,
+		Title:      "Entries",
+		Frame:      true,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         0.5,
+		Y0:         0.333,
+		X1:         1.0,
+		Y1:         0.80,
 	},
 	INFO_VIEW: {
-		title:    "Info",
-		frame:    true,
-		editable: false,
-		x0:       0.5,
-		y0:       0.0,
-		x1:       1.0,
-		y1:       0.333,
+		Title:      "Info",
+		Frame:      true,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         0.5,
+		Y0:         0.0,
+		X1:         1.0,
+		Y1:         0.333,
 	},
 	LOGGER_VIEW: {
-		title:    "Log",
-		frame:    true,
-		editable: false,
-		x0:       0.5,
-		y0:       0.80,
-		x1:       1.0,
-		y1:       1.0,
-	},
-	BLANK_VIEW: {
-		title:    "",
-		frame:    false,
-		editable: false,
-		x0:       -1,
-		y0:       -1,
-		x1:       -1,
-		y1:       -1,
+		Title:      "Log",
+		Frame:      true,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: true,
+		X0:         0.5,
+		Y0:         0.80,
+		X1:         1.0,
+		Y1:         1.0,
 	},
 }

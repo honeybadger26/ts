@@ -1,9 +1,12 @@
 package viewmode
 
+import "ts/viewmanager"
+
 const (
-	WEEK_VIEW = "vm_week"
-	HELP_VIEW = "vm_help"
-	INFO_VIEW = "vm_info"
+	WEEK_VIEW  = "vm_week"
+	HELP_VIEW  = "vm_help"
+	INFO_VIEW  = "vm_info"
+	BLANK_VIEW = "vm_blank"
 )
 
 var MAIN_VIEWS = []string{
@@ -12,39 +15,49 @@ var MAIN_VIEWS = []string{
 	INFO_VIEW,
 }
 
-type viewProps struct {
-	title          string
-	frame          bool
-	editable       bool
-	x0, y0, x1, y1 float32
-}
-
-var VIEW_PROPS = map[string]viewProps{
+var VIEW_PROPS = map[string]viewmanager.ViewProps{
 	WEEK_VIEW: {
-		title:    "",
-		frame:    true,
-		editable: false,
-		x0:       0.0,
-		y0:       0.0,
-		x1:       1.0,
-		y1:       0.7,
+		Title:      "",
+		Frame:      true,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         0.0,
+		Y0:         0.0,
+		X1:         1.0,
+		Y1:         0.7,
 	},
 	HELP_VIEW: {
-		title:    "",
-		frame:    false,
-		editable: false,
-		x0:       0.0,
-		y0:       0.7,
-		x1:       0.5,
-		y1:       1.0,
+		Title:      "",
+		Frame:      false,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         0.0,
+		Y0:         0.7,
+		X1:         0.5,
+		Y1:         1.0,
 	},
 	INFO_VIEW: {
-		title:    "",
-		frame:    true,
-		editable: false,
-		x0:       0.5,
-		y0:       0.7,
-		x1:       1.0,
-		y1:       1.0,
+		Title:      "",
+		Frame:      true,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: false,
+		X0:         0.5,
+		Y0:         0.7,
+		X1:         1.0,
+		Y1:         1.0,
+	},
+	BLANK_VIEW: {
+		Title:      "",
+		Frame:      false,
+		Editable:   false,
+		Wrap:       true,
+		Autoscroll: true,
+		X0:         -0.1,
+		Y0:         -0.1,
+		X1:         1.1,
+		Y1:         1.1,
 	},
 }

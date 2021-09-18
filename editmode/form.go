@@ -15,7 +15,7 @@ import (
 
 const (
 	DISPLAY_DATE_FORMAT = "Mon 02 / Jan 01 / 2006"
-	DATE_FORMAT = "02/01/2006"
+	DATE_FORMAT         = "02/01/2006"
 )
 
 type EditMode int
@@ -32,7 +32,7 @@ type EntryForm struct {
 	category database.ItemCategory
 	date     time.Time
 	editMode EditMode
-	item	 string
+	item     string
 	hours    int
 
 	items         []database.Item
@@ -42,7 +42,7 @@ type EntryForm struct {
 
 type DateRange struct {
 	from time.Time
-	to time.Time
+	to   time.Time
 }
 
 // make a refreshView method. pretty much updateItemView but also:
@@ -111,10 +111,10 @@ func (ef *EntryForm) updateItemView() {
 	maxX, maxY := g.Size()
 	// shouldn't have to do all this work to get points
 	// could store the form views points on ef?
-	x0 := int(p.x0*float32(maxX)) + 1
-	y0 := int(p.y0*float32(maxY)) + 1 + len(fv.BufferLines())
-	x1 := int(p.x1*float32(maxX)) - 1 - 1
-	y1 := int(p.y1*float32(maxY)) - 1 - 1
+	x0 := int(p.X0*float32(maxX)) + 1
+	y0 := int(p.Y0*float32(maxY)) + 1 + len(fv.BufferLines())
+	x1 := int(p.X1*float32(maxX)) - 1 - 1
+	y1 := int(p.Y1*float32(maxY)) - 1 - 1
 
 	iv, err := g.SetView(ITEM_VIEW, x0, y0, x1, y1)
 
@@ -125,8 +125,8 @@ func (ef *EntryForm) updateItemView() {
 	}
 
 	iv.Wrap = true
-	iv.Editable = VIEW_PROPS[ITEM_VIEW].editable
-	iv.Frame = VIEW_PROPS[ITEM_VIEW].frame
+	iv.Editable = VIEW_PROPS[ITEM_VIEW].Editable
+	iv.Frame = VIEW_PROPS[ITEM_VIEW].Frame
 
 	iv.Clear()
 
@@ -295,7 +295,7 @@ func (ef *EntryForm) GetInputDate() time.Time {
 			for range dateStr {
 				v.EditDelete(false)
 			}
-			dateChan <-date
+			dateChan <- date
 			return
 		case key == gocui.KeyBackspace || key == gocui.KeyBackspace2 || key == gocui.KeyArrowLeft:
 			if newCursorX, newCursorY := v.Cursor(); newCursorX == cX && newCursorY == cY {
@@ -380,7 +380,7 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 		ef.date = ef.app.date
 		fmt.Fprintf(v, "Hours: ")
 		ef.hours = ef.getHours()
-	// Or get user input for date range
+		// Or get user input for date range
 	} else if ef.editMode == emDateRange {
 		v.Clear()
 		fmt.Fprintf(v, "Item: ")
@@ -393,9 +393,9 @@ func (ef *EntryForm) GetEntries() (entrySlice []database.Entry) {
 
 	// Preparing entry(s) based on editMode and user input
 	var entry database.Entry
-	
+
 	entry.Item = ef.item
-	if (ef.editMode == emHourly) {
+	if ef.editMode == emHourly {
 		entry.Date = ef.date.Format(DATE_FORMAT)
 		entry.Hours = ef.hours
 		entrySlice = append(entrySlice, entry)

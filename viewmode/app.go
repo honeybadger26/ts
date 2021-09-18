@@ -8,6 +8,7 @@ import (
 	"github.com/jroimartin/gocui"
 
 	"ts/database"
+	"ts/viewmanager"
 )
 
 // repeated code - form.go
@@ -97,7 +98,7 @@ func (app *ViewApp) setupKeyBindings() {
 	})
 }
 
-func (app *ViewApp) getDateRange() (start time.Time, end time.Time) {
+func (app *ViewApp) getDateRange() (start time.Time, end time.Time, numDays int) {
 	start = app.CurrentDate.Truncate(24 * time.Hour)
 	for start.Weekday() != time.Monday {
 		start = start.AddDate(0, 0, -1)
@@ -107,6 +108,8 @@ func (app *ViewApp) getDateRange() (start time.Time, end time.Time) {
 	for end.Weekday() != time.Sunday {
 		end = end.AddDate(0, 0, 1)
 	}
+
+	numDays = int(end.Sub(start).Hours()/24) + 1
 
 	return
 }
@@ -143,63 +146,44 @@ func (app *ViewApp) printHelp() {
 }
 
 func (app *ViewApp) setupViews() {
-	// repeated code (app.go in editmode)
-	maxX, maxY := app.gui.Size()
+	g := app.gui
 
-	for _, name := range MAIN_VIEWS {
-		p := VIEW_PROPS[name]
-		x0 := int(p.x0 * float32(maxX))
-		y0 := int(p.y0 * float32(maxY))
-		x1 := int(p.x1*float32(maxX)) - 1
-		y1 := int(p.y1*float32(maxY)) - 1
+	if !app.standalone {
+		viewmanager.SetupView(g, BLANK_VIEW, VIEW_PROPS[BLANK_VIEW])
+	}
 
-		if !p.frame {
-			y0 = y0 - 1
-			y1 = y1 + 1
-		}
-
-		if v, err := app.gui.SetView(name, x0, y0, x1, y1); err != nil {
-			if err != gocui.ErrUnknownView {
-				log.Panicln(err)
-			}
-			v.Title = p.title
-			v.Wrap = true
-			v.Editable = p.editable
-			v.Frame = p.frame
-		}
+	for _, n := range MAIN_VIEWS {
+		viewmanager.SetupView(g, n, VIEW_PROPS[n])
 	}
 
 	app.refreshViews()
 	app.printHelp()
-	app.gui.SetCurrentView(INFO_VIEW)
+	g.SetCurrentView(INFO_VIEW)
 }
 
 // make this relative to WEEK_VIEW
 func (app *ViewApp) refreshViews() {
 	g := app.gui
 	p := VIEW_PROPS[WEEK_VIEW]
-	maxX, maxY := g.Size()
-	parentx0 := int(p.x0 * float32(maxX))
-	parenty0 := int(p.y0 * float32(maxY))
-	parentx1 := int(p.x1*float32(maxX)) - 1
-	parenty1 := int(p.y1*float32(maxY)) - 1
 
-	var x0, y0, x1, y1 int
-	startDate, endDate := app.getDateRange()
+	parentx0, parenty0, parentx1, parenty1 :=
+		viewmanager.GetDimensions(g, p.X0, p.Y0, p.X1, p.Y1)
+
+	startDate, endDate, numDays := app.getDateRange()
 
 	// width is 6 instead of 7 because weekend days are stacked
-	numDays := 7
 	width := (parentx1 - parentx0 - 1) / (numDays - 1)
-
 	if !app.showWeekend {
 		numDays = 5
 		width = (parentx1 - parentx0 - 1) / numDays
 	}
 
 	for _, name := range app.dayViews {
-		app.gui.DeleteView(name)
+		g.DeleteView(name)
 	}
 	app.dayViews = []string{}
+
+	var x0, y0, x1, y1 int
 
 	for i, d := 0, startDate; i < numDays; i, d = i+1, d.AddDate(0, 0, 1) {
 		// surely there's a better way to do this?
@@ -278,8 +262,8 @@ func (app *ViewApp) refreshViews() {
 
 	// also refresh info view
 	v, err := g.View(INFO_VIEW)
-	if err != nil {
-		log.Fatalln(err)
+	if err != nil && err != gocui.ErrUnknownView {
+		log.Panicln(err)
 	}
 
 	v.Clear()
@@ -294,6 +278,10 @@ func (app *ViewApp) refreshViews() {
 }
 
 func (app *ViewApp) Destroy() {
+	if !app.standalone {
+		app.gui.DeleteView(BLANK_VIEW)
+	}
+
 	for _, name := range MAIN_VIEWS {
 		app.gui.DeleteView(name)
 	}

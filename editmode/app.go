@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"time"
 	"ts/database"
+	"ts/viewmanager"
 	"ts/viewmode"
 	"ts/whiteboard"
 
@@ -95,24 +96,12 @@ func (app *App) setupKeyBindings() {
 
 	app.gui.SetKeybinding("", gocui.KeyCtrlW, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		if app.va == nil {
-			// hacky way to get a blank view that 'covers' the other views
-			maxX, maxY := g.Size()
-			v, _ := g.SetView(BLANK_VIEW, -1, -1, maxX+1, maxY+1)
-			p := VIEW_PROPS[BLANK_VIEW]
-			v.Frame = p.frame
-			v.Editable = p.editable
-			v.Clear()
-			for i := 0; i < maxX*maxY; i++ {
-				fmt.Fprintln(v, "\r")
-			}
-
 			g.Cursor = false
 			app.va = viewmode.NewViewApp(g, app.date, false)
 		} else {
 			app.changeDate(app.va.CurrentDate)
 			app.va.Destroy()
 			app.va = nil
-			g.DeleteView(BLANK_VIEW)
 			g.SetCurrentView(FORM_VIEW)
 			g.Cursor = true
 		}
@@ -158,29 +147,8 @@ func (app *App) setupKeyBindings() {
 }
 
 func (app *App) setupViews() {
-	maxX, maxY := app.gui.Size()
-
-	for _, name := range MAIN_VIEWS {
-		p := VIEW_PROPS[name]
-		x0 := int(p.x0 * float32(maxX))
-		y0 := int(p.y0 * float32(maxY))
-		x1 := int(p.x1*float32(maxX)) - 1
-		y1 := int(p.y1*float32(maxY)) - 1
-
-		if !p.frame {
-			y0 = y0 - 1
-			y1 = y1 + 1
-		}
-
-		if v, err := app.gui.SetView(name, x0, y0, x1, y1); err != nil {
-			if err != gocui.ErrUnknownView {
-				log.Panicln(err)
-			}
-			v.Title = p.title
-			v.Wrap = true
-			v.Editable = p.editable
-			v.Frame = p.frame
-		}
+	for _, n := range MAIN_VIEWS {
+		viewmanager.SetupView(app.gui, n, VIEW_PROPS[n])
 	}
 }
 
@@ -274,8 +242,8 @@ func (app *App) setHelpVisible(visible bool) {
 		boundary = float32(maxY-len(HELP_TEXT)-1) / float32(maxY)
 	}
 
-	viewHelp.y0 = boundary
-	viewForm.y1 = boundary
+	viewHelp.Y0 = boundary
+	viewForm.Y1 = boundary
 	VIEW_PROPS[HELP_VIEW] = viewHelp
 	VIEW_PROPS[FORM_VIEW] = viewForm
 
