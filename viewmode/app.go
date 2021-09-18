@@ -61,37 +61,64 @@ func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
 	return
 }
 
+type DateChange int
+
+const (
+	dcDay DateChange = iota
+	dcWeek
+)
+
+func (app *ViewApp) handleDateChange(forward bool, changeType DateChange) {
+	var numDays int
+
+	if changeType == dcDay {
+		numDays = 1
+		if !app.showWeekend && ((forward && app.CurrentDate.Weekday() == time.Friday) ||
+			(!forward && app.CurrentDate.Weekday() == time.Monday)) {
+			numDays = 3
+		}
+	} else {
+		numDays = 7
+	}
+
+	if !forward {
+		numDays *= -1
+	}
+
+	app.CurrentDate = app.CurrentDate.AddDate(0, 0, numDays)
+	app.refreshViews()
+}
+
 func (app *ViewApp) setupKeyBindings() {
 	if !app.standalone {
 		app.gui.SetKeybinding(INFO_VIEW, gocui.KeyCtrlW, gocui.ModNone, app.destroy)
 	}
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowLeft, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.CurrentDate = app.CurrentDate.AddDate(0, 0, -1)
-		app.refreshViews()
+		app.handleDateChange(false, dcDay)
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowRight, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.CurrentDate = app.CurrentDate.AddDate(0, 0, 1)
-		app.refreshViews()
+		app.handleDateChange(true, dcDay)
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowLeft, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
-		app.CurrentDate = app.CurrentDate.AddDate(0, 0, -7)
-		app.refreshViews()
+		app.handleDateChange(false, dcWeek)
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowRight, gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
-		app.CurrentDate = app.CurrentDate.AddDate(0, 0, 7)
-		app.refreshViews()
+		app.handleDateChange(true, dcWeek)
 		return nil
 	})
 
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyCtrlT, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		app.CurrentDate = time.Now()
+		if time.Now().Weekday() == time.Saturday || time.Now().Weekday() == time.Sunday {
+			app.showWeekend = true
+		}
 		app.refreshViews()
 		return nil
 	})
