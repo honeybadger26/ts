@@ -11,6 +11,7 @@ import (
 	"github.com/jroimartin/gocui"
 
 	"ts/database"
+	"ts/viewmanager"
 )
 
 const (
@@ -46,10 +47,6 @@ type DateRange struct {
 }
 
 // make a refreshView method. pretty much updateItemView but also:
-// - saves current cursor pos
-// - updates the form view
-// - restore cursor pos
-// OR
 // - redraws entire view (including item view)
 // - sets cursor to end of buffer
 
@@ -182,9 +179,7 @@ func (ef *EntryForm) getItem() {
 	done := make(chan bool)
 
 	v, _ := ef.app.gui.View(FORM_VIEW)
-	buffer := v.BufferLines()
-	cX := len(buffer[len(buffer)-1])
-	cY := len(buffer) - 1
+	cX, cY := viewmanager.GetEndPos(v)
 
 	v.SetCursor(cX, cY)
 	ef.updateItemView()
@@ -228,9 +223,8 @@ func (ef *EntryForm) getItem() {
 		}
 		gocui.DefaultEditor.Edit(v, key, ch, mod)
 
-		buf := v.BufferLines()
-		line := buf[len(buf)-1]
-		ef.changeItem(strings.TrimSpace(line[cX:]))
+		item := viewmanager.GetEndString(v, cX)
+		ef.changeItem(item)
 	})
 
 	<-done
@@ -241,9 +235,7 @@ func (ef *EntryForm) getHours() int {
 
 	// put in function?
 	v, _ := ef.app.gui.View(FORM_VIEW)
-	buffer := v.BufferLines()
-	cX := len(buffer[len(buffer)-1])
-	cY := len(buffer) - 1
+	cX, cY := viewmanager.GetEndPos(v)
 
 	v.SetCursor(cX, cY)
 
@@ -252,9 +244,7 @@ func (ef *EntryForm) getHours() int {
 		case ch != 0 && mod == 0 && !unicode.IsNumber(ch):
 			return
 		case key == gocui.KeyEnter:
-			buf := v.BufferLines()
-			line := buf[len(buf)-1]
-			hoursStr := strings.TrimSpace(line[cX:])
+			hoursStr := viewmanager.GetEndString(v, cX)
 			hoursInt, _ := strconv.Atoi(hoursStr)
 			v.SetCursor(cX, cY)
 			for range hoursStr {
@@ -277,9 +267,7 @@ func (ef *EntryForm) GetInputDate() time.Time {
 	dateChan := make(chan time.Time)
 
 	v, _ := ef.app.gui.View(FORM_VIEW)
-	buffer := v.BufferLines()
-	cX := len(buffer[len(buffer)-1])
-	cY := len(buffer) - 1
+	cX, cY := viewmanager.GetEndPos(v)
 
 	v.SetCursor(cX, cY)
 	v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
@@ -287,9 +275,7 @@ func (ef *EntryForm) GetInputDate() time.Time {
 		case ch != 0 && mod == 0 && ch != 47 && !unicode.IsNumber(ch):
 			return
 		case key == gocui.KeyEnter:
-			buf := v.BufferLines()
-			line := buf[len(buf)-1]
-			dateStr := strings.TrimSpace(line[cX:])
+			dateStr := viewmanager.GetEndString(v, cX)
 			date, _ := time.Parse(DATE_FORMAT, dateStr)
 			v.SetCursor(cX, cY)
 			for range dateStr {
@@ -326,8 +312,7 @@ func (ef *EntryForm) GetDateRange() (dr DateRange) {
 func (ef *EntryForm) SetDate(date time.Time) {
 	v, _ := ef.app.gui.View(FORM_VIEW)
 	buffer := v.BufferLines()
-	cX := len(buffer[len(buffer)-1])
-	cY := len(buffer) - 1
+	cX, cY := viewmanager.GetEndPos(v)
 
 	// can use v.Write('\r') to clear line?
 	dateLineEnd := len(buffer[0])

@@ -2,6 +2,7 @@ package viewmanager
 
 import (
 	"log"
+	"strings"
 
 	"github.com/jroimartin/gocui"
 )
@@ -43,4 +44,18 @@ func SetupView(g *gocui.Gui, name string, props ViewProps) {
 		v.Wrap = props.Wrap
 		v.Autoscroll = props.Autoscroll
 	}
+}
+
+func GetEndPos(v *gocui.View) (x, y int) {
+	buffer := v.BufferLines()
+	x = len(buffer[len(buffer)-1])
+	y = len(buffer) - 1
+	return
+}
+
+func GetEndString(v *gocui.View, index int) (result string) {
+	buf := v.BufferLines()
+	line := buf[len(buf)-1]
+	result = strings.TrimSpace(line[index:])
+	return
 }

@@ -45,7 +45,6 @@ type App struct {
 	gui *gocui.Gui
 	db  *database.Database
 	ef  *EntryForm
-	va  *viewmode.ViewApp
 
 	date         time.Time
 	item         string
@@ -94,17 +93,16 @@ func (app *App) setupKeyBindings() {
 		return nil
 	})
 
-	app.gui.SetKeybinding("", gocui.KeyCtrlW, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		if app.va == nil {
-			g.Cursor = false
-			app.va = viewmode.NewViewApp(g, app.date, false)
-		} else {
-			app.changeDate(app.va.CurrentDate)
-			app.va.Destroy()
-			app.va = nil
+	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlW, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		g.Cursor = false
+
+		va := viewmode.NewViewApp(g, app.date, false)
+		va.Callback = func() {
+			app.changeDate(va.CurrentDate)
 			g.SetCurrentView(FORM_VIEW)
 			g.Cursor = true
 		}
+
 		return nil
 	})
 

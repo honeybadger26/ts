@@ -42,6 +42,7 @@ type ViewApp struct {
 	dayViews []string
 
 	CurrentDate time.Time
+	Callback    func()
 }
 
 func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
@@ -61,6 +62,10 @@ func NewViewApp(g *gocui.Gui, date time.Time, standalone bool) (app *ViewApp) {
 }
 
 func (app *ViewApp) setupKeyBindings() {
+	if !app.standalone {
+		app.gui.SetKeybinding(INFO_VIEW, gocui.KeyCtrlW, gocui.ModNone, app.destroy)
+	}
+
 	app.gui.SetKeybinding(INFO_VIEW, gocui.KeyArrowLeft, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		app.CurrentDate = app.CurrentDate.AddDate(0, 0, -1)
 		app.refreshViews()
@@ -98,7 +103,7 @@ func (app *ViewApp) setupKeyBindings() {
 	})
 }
 
-func (app *ViewApp) getDateRange() (start time.Time, end time.Time, numDays int) {
+func (app *ViewApp) getDateRange() (start time.Time, end time.Time) {
 	start = app.CurrentDate.Truncate(24 * time.Hour)
 	for start.Weekday() != time.Monday {
 		start = start.AddDate(0, 0, -1)
@@ -108,8 +113,6 @@ func (app *ViewApp) getDateRange() (start time.Time, end time.Time, numDays int)
 	for end.Weekday() != time.Sunday {
 		end = end.AddDate(0, 0, 1)
 	}
-
-	numDays = int(end.Sub(start).Hours()/24) + 1
 
 	return
 }
@@ -169,9 +172,10 @@ func (app *ViewApp) refreshViews() {
 	parentx0, parenty0, parentx1, parenty1 :=
 		viewmanager.GetDimensions(g, p.X0, p.Y0, p.X1, p.Y1)
 
-	startDate, endDate, numDays := app.getDateRange()
+	startDate, endDate := app.getDateRange()
 
 	// width is 6 instead of 7 because weekend days are stacked
+	numDays := 7
 	width := (parentx1 - parentx0 - 1) / (numDays - 1)
 	if !app.showWeekend {
 		numDays = 5
@@ -219,6 +223,7 @@ func (app *ViewApp) refreshViews() {
 		if err == nil {
 			v.Clear()
 		} else if err != gocui.ErrUnknownView {
+			log.Panicln(numDays)
 			log.Panicln(err)
 		} else {
 			app.dayViews = append(app.dayViews, name)
@@ -277,16 +282,17 @@ func (app *ViewApp) refreshViews() {
 	fmt.Fprint(v, infoText)
 }
 
-func (app *ViewApp) Destroy() {
-	if !app.standalone {
-		app.gui.DeleteView(BLANK_VIEW)
-	}
+func (app *ViewApp) destroy(g *gocui.Gui, v *gocui.View) error {
+	g.DeleteView(BLANK_VIEW)
 
 	for _, name := range MAIN_VIEWS {
-		app.gui.DeleteView(name)
+		g.DeleteView(name)
 	}
 
 	for _, name := range app.dayViews {
-		app.gui.DeleteView(name)
+		g.DeleteView(name)
 	}
+
+	app.Callback()
+	return nil
 }
