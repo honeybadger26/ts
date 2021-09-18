@@ -2,9 +2,8 @@
 A CLI helper for TimeSheet
 
 ## Instructions
-- In the `data` folder: 
-    - Make a copy of the `items.json.base` file and name it `items.json`
-    - Make a copy of the `savedlogs.json.base` file and name it `savedlogs.json`
+- Make a copy of the `database/items.json.base` file and name it `database/items.json`
+- Make a copy of the `database/savedlogs.json.base` file and name it `database/savedlogs.json`
 - For edit mode: `go run .`
 - For view mode: `go run . v`
 
@@ -51,6 +50,3 @@ A CLI helper for TimeSheet
     5. Make the user confirm their entry (date + all items /w hours) & option to 'Save' & option to 'Back' / 'Amend' (Take back to Step 4, retain the data initially entered etc.)
 - Handle file not exists
 - Handle long list of text (items and entries). Maybe tab between each window and then let the user scroll? Using key events would be way easier though like Page Up/Down
-
-## Presentation Notes
-- Any above items that we want to have but didn't have time, add them to a 'road map' to show our plans for features

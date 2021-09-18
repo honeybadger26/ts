@@ -8,7 +8,6 @@ import (
 	"ts/database"
 	"ts/viewmanager"
 	"ts/viewmode"
-	"ts/whiteboard"
 
 	"github.com/jroimartin/gocui"
 )
@@ -127,7 +126,7 @@ func (app *App) setupKeyBindings() {
 
 	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlX, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		go func() {
-			whiteboard.NewWhiteboardHelper(g, FORM_VIEW)
+			NewWhiteboardHelper(g, FORM_VIEW)
 		}()
 		return nil
 	})

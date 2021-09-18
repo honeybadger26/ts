@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	ITEMS_FILE         = "data/items.json"
-	SAVED_LOGS_FILE    = "data/savedlogs.json"
+	ITEMS_FILE         = "database/items.json"
+	SAVED_LOGS_FILE    = "database/savedlogs.json"
 	RECENT_ITEMS_LIMIT = 5
 )
 
