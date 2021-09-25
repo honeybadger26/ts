@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_USER=jirauser
+      - POSTGRES_PASSWORD=asdf
+    ports:
+      - "5432:5432"

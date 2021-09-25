@@ -2,6 +2,13 @@
 A CLI helper for TimeSheet
 
 ## Instructions
+
+## PostgresSQL Container
+- `cd` to the `psqldb` folder
+- Run `docker-compose up`
+- To restart: `docker-compose rm postgres && docker-compose up --build`
+
+## CLI
 - Make a copy of the `database/items.json.base` file and name it `database/items.json`
 - Make a copy of the `database/savedlogs.json.base` file and name it `database/savedlogs.json`
 - For edit mode: `go run .`
