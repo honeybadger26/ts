@@ -1,6 +1,9 @@
 package database
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 const (
 	RECENT_ITEMS_LIMIT = 5
@@ -40,11 +43,11 @@ func (it ItemCategory) GetNext() ItemCategory {
 }
 
 type Item struct {
+	ItemId      int
 	Name        string
-	Description string
-	Size        string
-	TotalHours  float32
-	URL         string
+	Description sql.NullString
+	Size        sql.NullString
+	URL         sql.NullString
 	Type        string
 }
 

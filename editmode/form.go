@@ -82,7 +82,7 @@ func (ef *EntryForm) filterItems() {
 	ef.filteredItems = []database.Item{}
 
 	for _, item := range ef.items {
-		match, _ := regexp.MatchString(`(?i)`+ef.item, item.Name+item.Description)
+		match, _ := regexp.MatchString(`(?i)`+ef.item, item.Name+item.Description.String)
 		if match {
 			ef.filteredItems = append(ef.filteredItems, item)
 		}

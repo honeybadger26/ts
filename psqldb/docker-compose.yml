@@ -8,5 +8,6 @@ services:
     environment:
       - POSTGRES_USER=jirauser
       - POSTGRES_PASSWORD=asdf
+      - POSTGRES_DB=jiradb
     ports:
       - "5432:5432"

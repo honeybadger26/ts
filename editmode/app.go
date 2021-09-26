@@ -41,9 +41,10 @@ const (
 )
 
 type App struct {
-	gui *gocui.Gui
-	db  *database.Database
-	ef  *EntryForm
+	gui    *gocui.Gui
+	db     *database.Database
+	psqldb *database.PsqlInterface
+	ef     *EntryForm
 
 	date         time.Time
 	item         string
@@ -54,6 +55,7 @@ func NewEditApp(g *gocui.Gui) *App {
 	app := &App{}
 	app.gui = g
 	app.db = &database.Database{}
+	app.psqldb = database.NewPsqlInterface()
 
 	app.setupKeyBindings()
 	app.setupViews()
@@ -115,9 +117,10 @@ func (app *App) setupKeyBindings() {
 	})
 
 	app.gui.SetKeybinding(FORM_VIEW, gocui.KeyCtrlJ, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		item := app.db.GetItem(app.item)
-		app.log("Opening " + item.URL + " in browser... ")
-		var err = exec.Command("rundll32", "url.dll,FileProtocolHandler", item.URL).Start()
+		// item := app.db.GetItem(app.item)
+		item := app.psqldb.GetItem(app.item)
+		app.log("Opening " + item.URL.String + " in browser... ")
+		var err = exec.Command("rundll32", "url.dll,FileProtocolHandler", item.URL.String).Start()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -192,7 +195,8 @@ func (app *App) changeDate(date time.Time) {
 }
 
 func (app *App) printItemInfo() {
-	item := app.db.GetItem(app.item)
+	// item := app.db.GetItem(app.item)
+	item := app.psqldb.GetItem(app.item)
 
 	app.gui.Update(func(g *gocui.Gui) error {
 		v, err := g.View(INFO_VIEW)
@@ -208,15 +212,14 @@ func (app *App) printItemInfo() {
 		}
 
 		fmt.Fprintf(v, "Name:           %s\n", item.Name)
-		fmt.Fprintf(v, "Description:    %s\n", item.Description)
-		if item.Size != "" {
-			fmt.Fprintf(v, "Size:           %s\n", item.Size)
+		if item.Description.Valid {
+			fmt.Fprintf(v, "Description:    %s\n", item.Description.String)
 		}
-		if item.TotalHours != -1 {
-			fmt.Fprintf(v, "Total Hours:    %.2f\n", item.TotalHours+float32(app.db.GetHoursLogged(item.Name)))
+		if item.Size.Valid {
+			fmt.Fprintf(v, "Size:           %s\n", item.Size.String)
 		}
-		if item.URL != "" {
-			fmt.Fprintf(v, "URL:            %s\n", item.URL)
+		if item.URL.Valid {
+			fmt.Fprintf(v, "URL:            %s\n", item.URL.String)
 		}
 
 		return nil

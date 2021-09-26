@@ -22,6 +22,8 @@ A CLI helper for TimeSheet
 - General input validation (especially dates could be improved)
 
 ## Priority 1
+- Replace `database\jsondb.go` with `database\psqldb.go`
+    - Total hours using psqldb
 - Rework data structure to match JIRA timesheet data [IN PROGRESS - AMS]
 - See info for currently selected item: [TO DO]
     - Total hours logged to date (MUST HAVE FOR CR'S)
